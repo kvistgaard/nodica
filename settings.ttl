@@ -1,0 +1,38 @@
+@prefix cfg:  <https://kvistgaard.github.io/config#> .
+@prefix wdt:  <http://www.wikidata.org/prop/direct/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Nodica deployment settings (operator-controlled, D10).
+# This file is editable only through the repository. Users interact with
+# the app via the settings panel; their changes stay in their own browser
+# and can never modify this file or affect other users.
+#
+# Operator-only terms (ignored if a user tries to set them):
+#   cfg:dataSource      - RDF document preloaded at startup
+#   cfg:fallback        - cfg:Sample (built-in sample) or cfg:Empty when the
+#                         data source is absent or cannot be loaded
+#   cfg:settingsLocked  - true hides the settings panel and ignores user
+#                         overrides entirely
+#
+# Keep in sync with DEFAULT_CONFIG in app.js (used on file:// pages where
+# this file cannot be fetched).
+
+<#deployment> a cfg:Configuration ;
+    rdfs:label "Nodica deployment settings"@en ;
+    cfg:dataSource         <test/test-uncle-graph.ttl> ;
+    cfg:fallback           cfg:Sample ;
+    cfg:settingsLocked     false ;
+    # Clicking a node opens the entity (D11). Longest matching prefix wins;
+    # {LOCAL} = URI part after the prefix, {RAW} = full URI, {URI} = encoded.
+    cfg:dereferenceRule    [ cfg:uriPrefix "http://www.wikidata.org/entity/" ;
+                             cfg:template  "https://www.wikidata.org/wiki/{LOCAL}" ] ;
+    cfg:imageProperty      wdt:P18 ;
+    cfg:nodeSize           50 ;
+    cfg:edgeLength         200 ;
+    cfg:edgeWidth          4 ;
+    cfg:nodeLabelFontSize  20 ;
+    cfg:edgeLabelFontSize  20 ;
+    cfg:nodeLabelDistance  10 ;
+    cfg:nodeOutlineColor   "#2b7ce9" ;
+    cfg:edgeColor          "#888888" ;
+    cfg:physicsEnabled     true .

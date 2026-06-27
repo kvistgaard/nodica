@@ -1,0 +1,221 @@
+@prefix cfg:     <https://kvistgaard.github.io/config#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+
+#################################################################
+# Ontology
+#################################################################
+
+<https://kvistgaard.github.io/config>
+    a owl:Ontology ;
+    dcterms:title "Graph Visualisation Configuration Ontology"@en ;
+    rdfs:comment "A vocabulary for declarative configuration of graph visualisations, initially developed for the Nodica application. Configurations are themselves RDF, so they can be stored, queried and shared like any other data."@en ;
+    vann:preferredNamespacePrefix "cfg" ;
+    vann:preferredNamespaceUri "https://kvistgaard.github.io/config#" ;
+    dcterms:creator <https://github.com/kvistgaard> ;
+    dcterms:created "2026-06-12"^^xsd:date ;
+    owl:versionInfo "0.2.0" .
+
+#################################################################
+# Classes
+#################################################################
+
+cfg:Configuration
+    a owl:Class ;
+    rdfs:label "Configuration"@en ;
+    rdfs:comment "A set of settings controlling how a graph is rendered."@en ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+#################################################################
+# Object properties
+#################################################################
+
+cfg:imageProperty
+    a owl:ObjectProperty ;
+    rdfs:label "image property"@en ;
+    rdfs:comment "The RDF property whose object supplies the image a node is filled with (e.g. schema:image, foaf:depiction, wdt:P18). When a node has several values for this property, the first encountered is used unless another is explicitly selected."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range rdf:Property ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:labelProperty
+    a owl:ObjectProperty ;
+    rdfs:label "label property"@en ;
+    rdfs:comment "The RDF property whose object supplies the node label. Defaults to rdfs:label."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range rdf:Property ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:dataSource
+    a owl:ObjectProperty ;
+    rdfs:label "data source"@en ;
+    rdfs:comment "An RDF document (Turtle, TriG, N-Triples, ...) to preload into the visualisation when the configuration is applied. A relative IRI is resolved against the location of the configuration document."@en ;
+    rdfs:domain cfg:Configuration ;
+    cfg:operatorOnly true ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+#################################################################
+# Startup behavior and operator control (D10)
+#################################################################
+
+cfg:operatorOnly
+    a owl:AnnotationProperty ;
+    rdfs:label "operator only"@en ;
+    rdfs:comment "Marks configuration properties that are honoured only from the deployment configuration file, never from user-side input (UI panel, persisted overrides)."@en ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:StartupMode
+    a owl:Class ;
+    rdfs:label "Startup mode"@en ;
+    rdfs:comment "What the application shows when no data can be preloaded."@en ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:Sample
+    a cfg:StartupMode ;
+    rdfs:label "Show built-in sample"@en ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:Empty
+    a cfg:StartupMode ;
+    rdfs:label "Start empty"@en ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:fallback
+    a owl:ObjectProperty ;
+    rdfs:label "fallback"@en ;
+    rdfs:comment "Startup mode used when cfg:dataSource is absent or cannot be loaded: cfg:Sample (default) or cfg:Empty."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range cfg:StartupMode ;
+    cfg:operatorOnly true ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:settingsLocked
+    a owl:DatatypeProperty ;
+    rdfs:label "settings locked"@en ;
+    rdfs:comment "When true, the settings panel is hidden and per-user overrides are ignored: the deployment configuration fully controls the rendering."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:boolean ;
+    cfg:operatorOnly true ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+#################################################################
+# Dereferencing of entities (D11)
+#################################################################
+
+cfg:DereferenceRule
+    a owl:Class ;
+    rdfs:label "Dereference rule"@en ;
+    rdfs:comment "A rule mapping entity URIs to the web page opened when their node is clicked. The rule with the longest matching cfg:uriPrefix wins; without any matching rule the URI itself is opened."@en ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:dereferenceRule
+    a owl:ObjectProperty ;
+    rdfs:label "dereference rule"@en ;
+    rdfs:comment "Associates a configuration with a dereference rule. Repeatable."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range cfg:DereferenceRule ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:uriPrefix
+    a owl:DatatypeProperty ;
+    rdfs:label "URI prefix"@en ;
+    rdfs:comment "The rule applies to entity URIs starting with this string. An empty prefix matches every URI (catch-all)."@en ;
+    rdfs:domain cfg:DereferenceRule ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:template
+    a owl:DatatypeProperty ;
+    rdfs:label "template"@en ;
+    rdfs:comment "URL template for the page to open. Placeholders: {RAW} = the URI as-is, {URI} = the percent-encoded URI, {LOCAL} = the part of the URI after cfg:uriPrefix. Only http(s) results are opened."@en ;
+    rdfs:domain cfg:DereferenceRule ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+#################################################################
+# Datatype properties – dimensions (pixels)
+#################################################################
+
+cfg:nodeSize
+    a owl:DatatypeProperty ;
+    rdfs:label "node size"@en ;
+    rdfs:comment "Node radius in pixels."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:edgeLength
+    a owl:DatatypeProperty ;
+    rdfs:label "edge length"@en ;
+    rdfs:comment "Preferred edge length in pixels (spring length of the force layout)."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:edgeWidth
+    a owl:DatatypeProperty ;
+    rdfs:label "edge width"@en ;
+    rdfs:comment "Edge stroke width in pixels."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:nodeLabelFontSize
+    a owl:DatatypeProperty ;
+    rdfs:label "node label font size"@en ;
+    rdfs:comment "Font size of node labels in pixels."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:edgeLabelFontSize
+    a owl:DatatypeProperty ;
+    rdfs:label "edge label font size"@en ;
+    rdfs:comment "Font size of edge labels in pixels."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:nodeLabelDistance
+    a owl:DatatypeProperty ;
+    rdfs:label "node label distance"@en ;
+    rdfs:comment "Distance in pixels between the node label text and the node."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+#################################################################
+# Datatype properties – colors
+#################################################################
+
+cfg:nodeOutlineColor
+    a owl:DatatypeProperty ;
+    rdfs:label "node outline color"@en ;
+    rdfs:comment "Color of the node outline, as a CSS color value (e.g. \"#2b7ce9\", \"steelblue\")."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:edgeColor
+    a owl:DatatypeProperty ;
+    rdfs:label "edge color"@en ;
+    rdfs:comment "Color of edges, as a CSS color value."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+#################################################################
+# Datatype properties – behavior
+#################################################################
+
+cfg:physicsEnabled
+    a owl:DatatypeProperty ;
+    rdfs:label "physics enabled"@en ;
+    rdfs:comment "Whether the force-directed layout simulation is active when the graph loads. The user can still toggle it at runtime."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .

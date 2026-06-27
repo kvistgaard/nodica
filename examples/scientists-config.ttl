@@ -1,0 +1,19 @@
+@prefix cfg:    <https://kvistgaard.github.io/config#> .
+@prefix schema: <https://schema.org/> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Configuration matching examples/scientists.ttl / scientists.trig
+
+<#scientists> a cfg:Configuration ;
+    rdfs:label "Scientists demo"@en ;
+    cfg:imageProperty      schema:image ;
+    cfg:labelProperty      rdfs:label ;
+    cfg:nodeSize           60 ;
+    cfg:edgeLength         250 ;
+    cfg:edgeWidth          3 ;
+    cfg:nodeLabelFontSize  18 ;
+    cfg:edgeLabelFontSize  14 ;
+    cfg:nodeLabelDistance  12 ;
+    cfg:nodeOutlineColor   "#2b7ce9" ;
+    cfg:edgeColor          "#999999" ;
+    cfg:physicsEnabled     true .

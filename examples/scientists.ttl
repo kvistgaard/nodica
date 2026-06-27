@@ -1,0 +1,37 @@
+@prefix :       <http://example.org/scientist/> .
+@prefix rel:    <http://example.org/relation/> .
+@prefix schema: <https://schema.org/> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Demo data for ImageGraph: physicists with portrait images from
+# Wikimedia Commons. schema:image is the default image property.
+
+:einstein a schema:Person ;
+    rdfs:label "Albert Einstein" ;
+    schema:image <https://commons.wikimedia.org/wiki/Special:FilePath/Albert%20Einstein%20Head.jpg?width=200> ;
+    rel:influencedBy :planck ;
+    rel:debatedWith :bohr .
+
+:bohr a schema:Person ;
+    rdfs:label "Niels Bohr" ;
+    schema:image <https://commons.wikimedia.org/wiki/Special:FilePath/Niels%20Bohr.jpg?width=200> ;
+    rel:studentOf :rutherford .
+
+:curie a schema:Person ;
+    rdfs:label "Marie Curie" ;
+    schema:image <https://commons.wikimedia.org/wiki/Special:FilePath/Marie%20Curie%20c1920.jpg?width=200> ;
+    rel:colleagueOf :einstein ;
+    schema:birthPlace "Warsaw" .
+
+:rutherford a schema:Person ;
+    rdfs:label "Ernest Rutherford" ;
+    schema:image <https://commons.wikimedia.org/wiki/Special:FilePath/Ernest%20Rutherford%20LOC.jpg?width=200> ;
+    rel:studentOf :thomson .
+
+:planck a schema:Person ;
+    rdfs:label "Max Planck" ;
+    schema:image <https://commons.wikimedia.org/wiki/Special:FilePath/Max%20Planck%20(1858-1947).jpg?width=200> .
+
+# Intentionally no image: renders as a plain outlined node.
+:thomson a schema:Person ;
+    rdfs:label "J. J. Thomson" .

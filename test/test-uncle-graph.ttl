@@ -1,0 +1,666 @@
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+@prefix wikibase: <http://wikiba.se/ontology#> .
+@prefix ex: <https://example.org/rel/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sesame: <http://www.openrdf.org/schema/sesame#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix fn: <http://www.w3.org/2005/xpath-functions#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix hint: <http://www.bigdata.com/queryHints#> .
+@prefix bd: <http://www.bigdata.com/rdf#> .
+@prefix bds: <http://www.bigdata.com/rdf/search#> .
+@prefix psn: <http://www.wikidata.org/prop/statement/value-normalized/> .
+@prefix pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/> .
+@prefix prn: <http://www.wikidata.org/prop/reference/value-normalized/> .
+@prefix mwapi: <https://www.mediawiki.org/ontology#API/> .
+@prefix gas: <http://www.bigdata.com/rdf/gas#> .
+@prefix wdsubgraph: <https://query.wikidata.org/subgraph/> .
+@prefix wdtn: <http://www.wikidata.org/prop/direct-normalized/> .
+@prefix psv: <http://www.wikidata.org/prop/statement/value/> .
+@prefix ps: <http://www.wikidata.org/prop/statement/> .
+@prefix pqv: <http://www.wikidata.org/prop/qualifier/value/> .
+@prefix pq: <http://www.wikidata.org/prop/qualifier/> .
+@prefix prv: <http://www.wikidata.org/prop/reference/value/> .
+@prefix pr: <http://www.wikidata.org/prop/reference/> .
+@prefix wdno: <http://www.wikidata.org/prop/novalue/> .
+@prefix p: <http://www.wikidata.org/prop/> .
+@prefix wdata: <http://www.wikidata.org/wiki/Special:EntityData/> .
+@prefix wds: <http://www.wikidata.org/entity/statement/> .
+@prefix wdv: <http://www.wikidata.org/value/> .
+@prefix wdref: <http://www.wikidata.org/reference/> .
+@prefix schema: <http://schema.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix geof: <http://www.opengis.net/def/geosparql/function/> .
+@prefix mediawiki: <https://www.mediawiki.org/ontology#> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix wikibaseqs: <http://wikiba.se/queryService#> .
+
+wd:Q199484 ex:hasUncle wd:Q199659 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Mustafa3.jpg> .
+
+wd:Q199659 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/II.%20Mustafa.jpg> ;
+	ex:hasUncle wd:Q199660 .
+
+wd:Q199660 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Ahmet%20II.jpg> .
+
+wd:Q81000 ex:hasUncle wd:Q193752 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Richard%20II%20of%20England%20large%2002.jpg> .
+
+wd:Q193752 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Johnofgaunt.jpg> .
+
+wd:Q199830 ex:hasUncle wd:Q199484 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/IV.%20Mustafa%20%28cropped%29.jpg> .
+
+wd:Q175138 ex:hasUncle wd:Q7517 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Batu%20Khan%20on%20the%20Throne%20by%20Rashid%20al-Din%20%28cropped%29.jpg> .
+
+wd:Q7517 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Tolui%20Khan.jpg> .
+
+wd:Q160311 ex:hasUncle wd:Q235238 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Henrytreti.jpg> .
+
+wd:Q235238 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Henry%20the%20Young%20King.jpg> .
+
+wd:Q1411 ex:hasUncle wd:Q1407 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Ch%C3%A2teau%20de%20Versailles%2C%20salon%20de%20la%20paix%2C%20buste%20d%27empereur%20romain%20%28Claude%29.jpg> .
+
+wd:Q1407 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/%28Venice%29%20Tiberius%20Portrait%20of%20the%20%27Imperium%20Maius%27%20type%20in%20Museo%20Archeologico%20Nazionale.jpg> .
+
+wd:Q122366 ex:hasUncle wd:Q122392 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Daniel%20Bernoulli%20by%20Grooth.jpg> .
+
+wd:Q122392 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Jakob%20Bernoulli.jpg> .
+
+wd:Q203768 ex:hasUncle wd:Q174772 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20Caliph%20Abdulmecid%20II.jpg> .
+
+wd:Q174772 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Sultan%20Abd%C3%BClmecid%20-%20Google%20Art%20Project.jpg> .
+
+wd:Q150862 ex:hasUncle wd:Q32500 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Nicolas%20Neufch%C3%A2tel%20002.jpg> .
+
+wd:Q32500 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20of%20Charles%20V%2C%20Holy%20Roman%20Emperor%2C%20seated%20%281500%E2%80%931558%29%2C%20formerly%20attributed%20to%20Titian%20%28Alte%20Pinakothek%2C%20Munich%29.jpg> .
+
+wd:Q207953 ex:hasUncle wd:Q133028 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Elizabeth%20of%20York%20from%20Kings%20and%20Queens%20of%20England.jpg> .
+
+wd:Q133028 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/King%20Richard%20III%20from%20NPG.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Richard%20III%20earliest%20surviving%20portrait.jpg> .
+
+wd:Q150599 ex:hasUncle wd:Q150862 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Kaiser%20Ferdinand%20II.%201614.jpg> .
+
+wd:Q152229 ex:hasUncle wd:Q33550 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Frederick%20William%20II%20%281744-1797%29.jpg> .
+
+wd:Q33550 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Friedrich%20Zweite%20Alt.jpg> .
+
+wd:Q170470 ex:hasUncle wd:Q133028 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/King-edward-v.jpg> .
+
+wd:Q170514 ex:hasUncle wd:Q172056 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Sultan%20Mehmed%20IV%20%282%29.jpg> .
+
+wd:Q172056 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Osman%202.jpg> .
+
+wd:Q80976 ex:hasUncle wd:Q152099 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Duke%20of%20Edinburgh%2033%20Allan%20Warren.jpg> .
+
+wd:Q152099 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Constantine%20I%20of%20Greece.jpg> .
+
+wd:Q170707 ex:hasUncle wd:Q199659 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20of%20Abd%C3%BClhamid%20I%20of%20the%20Ottoman%20Empire.jpg> .
+
+wd:Q199827 ex:hasUncle wd:Q151500 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20of%20Murad%20V.jpg> .
+
+wd:Q151500 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Sultan%20Abdulaziz.jpg> .
+
+wd:Q199660 ex:hasUncle wd:Q174762 .
+
+wd:Q174762 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Murad%20IV%20minature.jpg> .
+
+wd:Q172061 ex:hasUncle wd:Q172056 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/S%C3%BCleyman%20II.jpg> .
+
+wd:Q199481 ex:hasUncle wd:Q199482 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Mahmud1.jpg> .
+
+wd:Q199482 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Levni%20002.jpeg> .
+
+wd:Q199825 ex:hasUncle wd:Q199482 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Osman-iii.jpg> .
+
+wd:Q51068 ex:hasUncle wd:Q43063 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Emperor%20karl%20of%20austria-hungary%201917.png> .
+
+wd:Q43063 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Ferdinand%20Schmutzer%20-%20Franz%20Ferdinand%20von%20%C3%96sterreich-Este%2C%20um%201914.jpg> .
+
+wd:Q83171 ex:hasUncle wd:Q15193 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Zar%20Alexander%20II%20%28cropped%29.jpg> .
+
+wd:Q15193 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Emperor%20Alexander%20I%20of%20Russia%20by%20Alexander%20Molinari%201813.png> .
+
+wd:Q162543 ex:hasUncle wd:Q151500 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/S%C3%A9bah%20%26%20Joaillier%20-%20Sultan%20Mehmed%20VI.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Sultan%20Mehmed%20VI%20of%20the%20Ottoman%20Empire.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/VI%20Mehmet%20Vahidettin.jpg> .
+
+wd:Q150642 ex:hasUncle wd:Q32432 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Vitorio%20Emanuel%20III.jpg> .
+
+wd:Q32432 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Retrato-de-Amadeo-I-M-Hebert-Fot-Madrid%20%281%29.jpg> .
+
+wd:Q192925 ex:hasUncle wd:Q170017 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/King%20Edgar%2C%20c.943-75.jpg> .
+
+wd:Q170017 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Athelstan%20%28cropped%29.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/King.athelstan.tomb.arp.jpg> .
+
+wd:Q188684 ex:hasUncle wd:Q192920 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Edmund%20Iron.jpg> .
+
+wd:Q192920 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Edward%20the%20Martyr%20-%20MS%20Royal%2014%20B%20VI.jpg> .
+
+wd:Q134817 ex:hasUncle wd:Q151500 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Sultan%20Abdul%20Hamid%20II%20in%201899.jpg> .
+
+wd:Q174791 ex:hasUncle wd:Q199484 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Mahmud%20II.jpg> .
+
+wd:Q174772 ex:hasUncle wd:Q199830 .
+
+wd:Q191039 ex:hasUncle wd:Q1407 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/%28Toulouse%29%20Portrait%20de%20Germanicus%20-%20Mus%C3%A9e%20Saint-Raymond%20Ra%20342%20c.jpg> .
+
+wd:Q215204 ex:hasUncle wd:Q152463 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Louis%20II%20of%20Italy.png> .
+
+wd:Q152463 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Louis%20I%20of%20East%20Francia.jpg> .
+
+wd:Q314978 ex:hasUncle wd:Q182914 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/London%2C%20Oriental%2012009%2C%20fol.%20269v%20Hadikat%20us-suada%20Zeynulabidin%20preaching%20in%20defence%20of%20Huseyin.jpg> .
+
+wd:Q182914 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/%D8%A7%D9%84%D8%AD%D8%B3%D9%86%20%D8%A7%D8%A8%D9%86%20%D8%B9%D9%84%D9%8A.svg> .
+
+wd:Q151500 ex:hasUncle wd:Q199830 .
+
+wd:Q160353 ex:hasUncle wd:Q159798 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Theodosius%20II%20Louvre%20Ma1036.jpg> .
+
+wd:Q159798 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Consular%20diptych%20Probus%20406.jpg> .
+
+wd:Q84192 ex:hasUncle wd:Q183579 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Maximilian%20of%20Mexico%20bw.jpg> .
+
+wd:Q183579 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Kaiser%20Ferdinand%20I.jpg> .
+
+wd:Q160165 ex:hasUncle wd:Q8479 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Louis%20Caravaque%2C%20Portrait%20of%20Empress%20Anna%20Ioannovna%20%281730%29.jpg> .
+
+wd:Q8479 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Inconnu%20d%27apr%C3%A8s%20J.-M.%20Nattier%2C%20Portrait%20de%20Pierre%20Ier%20%28mus%C3%A9e%20de%20l%E2%80%99Ermitage%29.jpg> .
+
+wd:Q157092 ex:hasUncle wd:Q54056 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Hans%20Krell%20-%20Portrait%20of%20King%20Louis%20II%20of%20Hungary%20%28c.1526%29.jpg> .
+
+wd:Q54056 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Kulmbach%20Sigismund%20I%20the%20Old.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Sigismund%20I%20of%20Poland.PNG> .
+
+wd:Q130005 ex:hasUncle wd:Q192920 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Bayeux%20Tapestry%20scene1%20EDWARD%20REX.jpg> .
+
+wd:Q168776 ex:hasUncle wd:Q174798 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Ibrahim%20I.jpg> .
+
+wd:Q174798 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Ottoman%20portrait%20of%20Sultan%20Mustafa%20I%20%28r.%201617%E2%80%9318%3B%201622%E2%80%9323%29%2C%20late%2017th%E2%80%93early%2018th%20century.%20Metropolitan%20Museum%20of%20Art.jpg> .
+
+wd:Q9439 ex:hasUncle wd:Q130586 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Queen%20Victoria%20by%20Bassano.jpg> .
+
+wd:Q130586 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/George%20IVcoronation.jpg> .
+
+wd:Q9439 ex:hasUncle wd:Q130822 .
+
+wd:Q130822 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/William%20IV%20in%201833%20by%20Shee%20cropped.jpg> .
+
+wd:Q154927 ex:hasUncle wd:Q17142 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Haakon%20VII%20FSA.jpg> .
+
+wd:Q17142 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/George%20I%20of%20Greece%2C%20c.1912.jpg> .
+
+wd:Q156548 ex:hasUncle wd:Q151742 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Reina%20Do%C3%B1a%20Sofia.jpg> .
+
+wd:Q151742 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/King%20Alexander%20of%20Greece.jpg> .
+
+wd:Q156548 ex:hasUncle wd:Q152935 .
+
+wd:Q152935 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Georgeiiofgreece.jpg> .
+
+wd:Q127318 ex:hasUncle wd:Q131981 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Allan%20Ramsay%20%281713-84%29%20-%20George%20III%20%281738-1820%29%20-%20RCIN%20405307%20-%20Royal%20Collection.jpg> .
+
+wd:Q131981 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20of%20King%20George%20II%20of%20Great%20Britain.jpg> .
+
+wd:Q160311 ex:hasUncle wd:Q42305 .
+
+wd:Q42305 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Richard%20I%20of%20England%20in%20the%20Brief%20Abridgement%20of%20the%20Chronicles%20of%20England.jpg> .
+
+wd:Q170514 ex:hasUncle wd:Q174762 .
+
+wd:Q175138 ex:hasUncle wd:Q487543 .
+
+wd:Q487543 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Chagatai%20Khan.JPG> .
+
+wd:Q172056 ex:hasUncle wd:Q174798 .
+
+wd:Q215204 ex:hasUncle wd:Q71231 .
+
+wd:Q71231 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Carlo%20calvo.jpg> .
+
+wd:Q150712 ex:hasUncle wd:Q150735 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Charles%20III%20the%20Fat.jpg> .
+
+wd:Q150735 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Lothar%20I.jpg> .
+
+wd:Q150712 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Charles%20le%20Gros.PNG> .
+
+wd:Q172061 ex:hasUncle wd:Q174762 .
+
+wd:Q183085 ex:hasUncle wd:Q183226 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Isabel%20de%20Borb%C3%B3n%20y%20Borb%C3%B3n-Dos%20Sicilias.jpg> .
+
+wd:Q183226 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Carlos%20IV%20de%20rojo.jpg> .
+
+wd:Q151312 ex:hasUncle wd:Q154927 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Frederik%20IX%20%28cropped%29%20-%20Det%20Kongelige%20Bibliotek%20%28KE062449%29.jpg> .
+
+wd:Q156617 ex:hasUncle wd:Q17142 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Christian%20X%20of%20Denmark%20circa%201915.jpg> .
+
+wd:Q151773 ex:hasUncle wd:Q151742 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Constantine%20II%20of%20Greece%20%28cropped%29.jpg> ;
+	ex:hasUncle wd:Q152935 .
+
+wd:Q186256 ex:hasUncle wd:Q312325 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Fernando%20VII%20-%20Vicente%20L%C3%B3pez.jpg> .
+
+wd:Q312325 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Mengs%20-%20Ferdinand%20IV%20of%20Naples%2C%20Royal%20Palace%20of%20Madrid.jpg> .
+
+wd:Q185152 ex:hasUncle wd:Q299710 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/%E6%BA%A5%E4%BB%AA.jpg> .
+
+wd:Q299710 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/The%20Imperial%20Portrait%20of%20Emperor%20Guangxu2.jpg> .
+
+wd:Q154936 ex:hasUncle wd:Q150712 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Arnulf%20Korutansk%C3%BD.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Die%20deutschen%20Kaiser%20Arnulph.jpg> .
+
+wd:Q130812 ex:hasUncle wd:Q122553 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Sir%20Godfrey%20Kneller%20%281646-1723%29%20-%20Mary%20II%20%281662-1694%29%20-%20RCIN%20405674%20-%20Royal%20Collection.jpg> .
+
+wd:Q122553 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Sir%20Peter%20Lely%20%281618-80%29%20-%20Charles%20II%20%281630-1685%29%20-%20RCIN%20405672%20-%20Royal%20Collection.jpg> .
+
+wd:Q154912 ex:hasUncle wd:Q156617 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Olav%20V%20of%20Norway.jpg> .
+
+wd:Q150712 ex:hasUncle wd:Q71231 .
+
+wd:Q58600 ex:hasUncle wd:Q57180 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Emperor%20Friedrich%20III.png> .
+
+wd:Q57180 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Friedrich%20Wilhelm%20IV%20of%20Prussia%20%281847%29.jpg> .
+
+wd:Q130834 ex:hasUncle wd:Q76555 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Francis%20II%2C%20Holy%20Roman%20Emperor%20by%20Friedrich%20von%20Amerling%20003.jpg> .
+
+wd:Q76555 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Anton%20von%20Maron%20006.png> .
+
+wd:Q175138 ex:hasUncle wd:Q7519 .
+
+wd:Q7519 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/YuanEmperorAlbumOgedeiPortrait.jpg> .
+
+wd:Q131706 ex:hasUncle wd:Q152480 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Kaiserin%20Maria%20Theresia%20%28HRR%29.jpg> .
+
+wd:Q152480 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/JosephI.1705.JPG> .
+
+wd:Q312325 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/FerdinandITwoSicilies.jpg> .
+
+wd:Q199482 ex:hasUncle wd:Q172061 .
+
+wd:Q193658 ex:hasUncle wd:Q192846 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Louis%20IV%20denier%20Chinon%20936%20954.jpg> .
+
+wd:Q192846 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Carloman%20II%20of%20France.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Charles%20Auguste%20Guillaume%20Henri%20Fran%C3%A7ois%20Louis%20de%20Steuben%20-%20Louis%20III%20%28vers%20863-882%29%20et%20Carloman%20%28vers%20866-884%29.jpg> .
+
+wd:Q193658 ex:hasUncle wd:Q193112 .
+
+wd:Q193112 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Charles%20Auguste%20Guillaume%20Henri%20Fran%C3%A7ois%20Louis%20de%20Steuben%20-%20Louis%20III%20%28vers%20863-882%29%20et%20Carloman%20%28vers%20866-884%29.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Louis%20III.jpg> .
+
+wd:Q199482 ex:hasUncle wd:Q199660 .
+
+wd:Q119702 ex:hasUncle wd:Q122553 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Dahl%2C%20Michael%20-%20Queen%20Anne%20-%20NPG%206187.jpg> .
+
+wd:Q151494 ex:hasUncle wd:Q151500 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/MehmedV.jpg> .
+
+wd:Q152229 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/1794%20Frisch%20Friedrich%20Wilhelm%20II.%20von%20Preussen%20anagoria.jpg> .
+
+wd:Q160353 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Theodosius%20ii.jpg> .
+
+wd:Q152099 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/BASA-237K-1-361-4-Constantine%20I%20of%20Greece.jpg> .
+
+wd:Q51056 ex:hasUncle wd:Q183579 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Franz%20Joseph%20I%20of%20Austria.1910%20%28cropped%29.jpg> .
+
+wd:Q174762 ex:hasUncle wd:Q174798 .
+
+wd:Q160165 ex:hasUncle wd:Q184868 .
+
+wd:Q184868 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Feodor%20III%20-%20parsuna%20near%201680.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Feodor%20III%20by%20Ivan%20Saltanov.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Feodor%20III%20of%20Russia%20by%20Dutch%20anonymous%20%281676%2C%20Hermitage%29.jpg> .
+
+wd:Q199633 ex:hasUncle wd:Q170707 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Konstantin%20Kapidagli%20002.jpg> .
+
+wd:Q199659 ex:hasUncle wd:Q172061 .
+
+wd:Q199660 ex:hasUncle wd:Q172056 .
+
+wd:Q43974 ex:hasUncle wd:Q191003 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Ludwik%20I%20Pobo%C5%BCny.jpg> .
+
+wd:Q191003 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Carloman1.jpg> .
+
+wd:Q230303 ex:hasUncle wd:Q134549 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Caroline%20Kennedy%2C%20U.S.%20Ambassador%202.jpg> .
+
+wd:Q134549 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Ted%20Kennedy%2C%20official%20photo%20portrait%20crop.jpg> .
+
+wd:Q152245 ex:hasUncle wd:Q12971 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20of%20Prince%20Albert%20%28by%20Roger%20Fenton%29%20%E2%80%93%20Royal%20Collection%20%E2%80%93%20unframed%20%28detail%29%20FXD.jpg> .
+
+wd:Q12971 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/1840%20portrait%20of%20King%20Leopold%20I%20%28King%20of%20the%20Belgians%29%20by%20Winterhalter.jpg> .
+
+wd:Q155004 ex:hasUncle wd:Q12976 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Visit%20of%20King%20Philippe%20I%20of%20Belgium%20to%20Ghent%20European%20Youth%20Capital%20on%2025%20April%202024%20-%20EU2024BE%20240425%20Visit%20of%20His%20Majesty%20the%20King%20to%20Ghent%20European%20Youth%20Capital%20Ghent%20JNZT%200078%20%2853677952391%29.jpg> .
+
+wd:Q12976 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/King%20Baudouin%20of%20Belgium.jpg> .
+
+wd:Q52940 ex:hasUncle wd:Q52939 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Sigismund%20III%20of%20Poland-Lithuania%20and%20Sweden%20%28Martin%20Kober%29.jpg> .
+
+wd:Q52939 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Karl%20IX.jpg> .
+
+wd:Q1465751 ex:hasUncle wd:Q7732 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Louis-Antoine%2C%20Duke%20of%20Angouleme%20-%20Lawrence%201825.jpg> .
+
+wd:Q7732 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Mus%C3%A9e%20Ingres-Bourdelle%20-%20Portrait%20de%20Louis%20XVI%20-%20Joseph-Siffred%20Duplessis%20-%20Joconde06070000102.jpg> .
+
+wd:Q18002970 ex:hasUncle wd:Q152316 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Queen%20Elizabeth%20II%20Platinum%20Jubilee%202022%20-%20Platinum%20Pageant%20%2852124830349%29%20%28cropped2%29.jpg> .
+
+wd:Q152316 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Prince%20Harry%2C%20Duke%20of%20Sussex%202020%20cropped%2002.jpg> .
+
+wd:Q49765 ex:hasUncle wd:Q7750 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Louis%20Charles%20of%20France4.jpg> .
+
+wd:Q7750 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/G%C3%A9rard%20-%20Louis%20XVIII%20of%20France%20in%20Coronation%20Robes.jpg> .
+
+wd:Q52890 ex:hasUncle wd:Q52925 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Gustaf%20V%20f%C3%A4rgfoto.jpg> .
+
+wd:Q52925 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Karl%20XV%20i%20mitten%20av%201860-talet.jpg> .
+
+wd:Q7520 ex:hasUncle wd:Q186581 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Guyuk%20khan%20from%20Persian%20miniature.jpg> .
+
+wd:Q186581 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Juchi%20Khan.JPG> .
+
+wd:Q43063 ex:hasUncle wd:Q51056 .
+
+wd:Q182070 ex:hasUncle wd:Q43107 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Maxentius01%20pushkin.jpg> .
+
+wd:Q43107 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Istanbul%20-%20Museo%20archeol.%20-%20Diocleziano%20%28284-305%20d.C.%29%20-%20Foto%20G.%20Dall%27Orto%2028-5-2006.jpg> .
+
+wd:Q182070 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Maxentius02%20pushkin.jpg> .
+
+wd:Q7521 ex:hasUncle wd:Q186581 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/M%C3%B6ngke%20Khan.jpg> .
+
+wd:Q8404 ex:hasUncle wd:Q174964 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/JeanIposthume.JPG> .
+
+wd:Q174964 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Charles4%20mini.jpg> .
+
+wd:Q44039 ex:hasUncle wd:Q77067 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Albert%2C%20Joseph%20-%20K%C3%B6nig%20Ludwig%20II.%20von%20Bayern%20%281845-1886%29%20%28Zeno%20Fotografie%29.jpg> .
+
+wd:Q77067 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Prinz%20Otto%20von%20Bayern%20Koenig%20von%20Griechenland%201833.jpg> .
+
+wd:Q52940 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Zygmunt%20Waza%20Soutman.jpg> ;
+	ex:hasUncle wd:Q52945 .
+
+wd:Q52945 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Erik%20XIV%20%281533-1577%29%20Domenicus%20Verwildt.jpg> .
+
+wd:Q36812 ex:hasUncle wd:Q153330 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Prince%20of%20Wales%20in%20Normandy%202024.jpg> .
+
+wd:Q153330 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Prince%20Andrew%2C%20Duke%20of%20York%20%28cropped%29.jpg> .
+
+wd:Q46846 ex:hasUncle wd:Q172471 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Statue%20of%20emperor%20Valentinian%20II%20detail.JPG> .
+
+wd:Q172471 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Valens%20Honorius%20Musei%20Capitolini%20MC494.jpg> .
+
+wd:Q41613 ex:hasUncle wd:Q31513 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Hexagram-Constans%20II%20and%20Constantine%20IV-sb0995.jpg> .
+
+wd:Q31513 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Solidus-Heraclius-sb0764.jpg> .
+
+wd:Q7732 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Duplessis%20-%20Louis%20XVI%20of%20France%2C%20oval%2C%20Versailles.jpg> .
+
+wd:Q1465751 ex:hasUncle wd:Q7750 .
+
+wd:Q7520 ex:hasUncle wd:Q487543 .
+
+wd:Q1352872 ex:hasUncle wd:Q9696 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Robert%20F.%20Kennedy%20Jr.%2C%20official%20portrait%20%282025%29%20%28cropped%203-4%29.jpg> .
+
+wd:Q9696 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/John%20F.%20Kennedy%2C%20White%20House%20color%20photo%20portrait.jpg> .
+
+wd:Q52929 ex:hasUncle wd:Q52928 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Gustav%20IV%20Adolf%20of%20Sweden.jpg> .
+
+wd:Q52928 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Charles%20XIII%20of%20Sweden.jpg> .
+
+wd:Q7521 ex:hasUncle wd:Q487543 .
+
+wd:Q172203 ex:hasUncle wd:Q203829 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Miniature%20Philippe%20III%20Courronement.jpg> .
+
+wd:Q203829 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Napoli%2C%20carlo%20I%20d%27angi%C3%B2%2C%20reale%2C%201276.jpg> .
+
+wd:Q131195 ex:hasUncle wd:Q43107 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Const.chlorus01%20pushkin.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Const.chlorus02%20pushkin.jpg> .
+
+wd:Q38668629 ex:hasUncle wd:Q152316 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Prince%20Louis%20of%20Wales%20in%202024%20%28cropped%29.jpg> .
+
+wd:Q54056 ex:hasUncle wd:Q54053 .
+
+wd:Q54053 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Ladislaus%20varna.jpeg> .
+
+wd:Q41613 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Constans%20II%20tremissis%2081089.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Solidus%20Constans%20II%20%28obverse%29.jpg> .
+
+wd:Q312325 ex:hasUncle wd:Q193157 .
+
+wd:Q193157 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Fernando%20VI.jpg> .
+
+wd:Q41659 ex:hasUncle wd:Q41833 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Zoe%20mosaic%20Hagia%20Sophia.jpg> .
+
+wd:Q41833 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Basilios%20II.jpg> .
+
+wd:Q150872 ex:hasUncle wd:Q102005 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Empress%20Mathilda.png> .
+
+wd:Q102005 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/William%20II%20of%20England.jpg> .
+
+wd:Q177320 ex:hasUncle wd:Q186581 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/%D9%87%D9%88%D9%84%D8%A7%D9%83%D9%88%20%D8%AE%D8%A7%D9%86.png> .
+
+wd:Q13590412 ex:hasUncle wd:Q152316 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Trooping%20the%20Colour%202023%20%28GovPM%2041%29%20crop%202.jpg> .
+
+wd:Q7523 ex:hasUncle wd:Q186581 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/YuanEmperorAlbumKhubilaiPortrait.jpg> .
+
+wd:Q1413 ex:hasUncle wd:Q191039 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Nero%20Palatino%20Inv618.jpg> .
+
+wd:Q1762 ex:hasUncle wd:Q183089 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Bust%20of%20Elagabalus%20-%20Palazzo%20Nuovo%20-%20Musei%20Capitolini%20-%20Rome%202016%20%282%29.jpg> .
+
+wd:Q183089 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Geta.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Publius%20Septimius%20Geta%20Louvre%20Ma1076.jpg> .
+
+wd:Q36812 ex:hasUncle wd:Q154920 .
+
+wd:Q154920 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Prince%20Edward%202025.jpg> .
+
+wd:Q1769 ex:hasUncle wd:Q183089 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/0%20Alexandre%20S%C3%A9v%C3%A8re%20-%20MR%20408%20-%20Louvre%20%281b%29.JPG> .
+
+wd:Q9458 ex:hasUncle wd:Q293599 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Mohammed.jpg> .
+
+wd:Q293599 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Le%20Miracle%20des%20abeilles%20-%20Siyar-i-Nabi%20-%20Turkey%20-%201595%20ca%20-%20Louvre%20-%20MAO%20927.jpg> .
+
+wd:Q9458 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Muslim%20depiction%20of%20Muhammad%20-%2017th%20century%20Ottoman%20copy%20from%20the%20%22Edinburgh%20codex%22.jpg> , <http://commons.wikimedia.org/wiki/Special:FilePath/Siyer-i%20Nebi%20158b.jpg> .
+
+wd:Q312325 ex:hasUncle wd:Q212457 .
+
+wd:Q212457 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Luis%20I%2C%20pr%C3%ADncipe%20de%20Asturias2.jpg> .
+
+wd:Q230303 ex:hasUncle wd:Q25310 .
+
+wd:Q25310 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Robert%20F.%20Kennedy.jpg> .
+
+wd:Q7521 ex:hasUncle wd:Q7519 .
+
+wd:Q177320 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Representation%20of%20Hulagu%20Khan%20%281217-1265%29%20Persian%20miniature%20taken%20from%20Jami%20al-tawarikh%20%28Jami%20al-tawarikh%29%20or%20Universal%20History%20by%20historian%20Rashid%20al-din%20%28al%20din%29%20%281247-1318%29%20Around%201430.%20Paris%2C%20B.N%20%28portrait%29.jpg> .
+
+wd:Q183226 ex:hasUncle wd:Q193157 .
+
+wd:Q43063 ex:hasUncle wd:Q84192 .
+
+wd:Q182840 ex:hasUncle wd:Q150735 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Louis%20II%20de%20France%202.jpg> ;
+	ex:hasUncle wd:Q152463 .
+
+wd:Q152099 ex:hasUncle wd:Q152756 .
+
+wd:Q152756 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Frederik%20IIX%20-%20Otto%20Bache.jpg> .
+
+wd:Q52929 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Gustav%20IV%20Adolf%20%28Johann%20Baptist%20Lampi%20d.%C3%A4.%29%20-%20Nationalmuseum%20-%2037526.tif> .
+
+wd:Q177320 ex:hasUncle wd:Q487543 .
+
+wd:Q152756 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Frederik%20VIII%20of%20Denmark%201909.jpg> .
+
+wd:Q7723 ex:hasUncle wd:Q7726 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Michael%20Moritz%20Daffinger%20-%20Der%20Herzog%20von%20Reichstadt%20-%202085%20-%20%C3%96sterreichische%20Galerie%20Belvedere.jpg> .
+
+wd:Q7726 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Joseph%20Bonaparte%20%28by%20Wicar%29.jpg> .
+
+wd:Q183226 ex:hasUncle wd:Q212457 .
+
+wd:Q52938 ex:hasUncle wd:Q52944 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Attributed%20to%20Jacob%20Hoefnagel%20-%20Gustavus%20Adolphus%2C%20King%20of%20Sweden%201611-1632%20-%20Google%20Art%20Project.jpg> .
+
+wd:Q52944 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/John%20III%20of%20Sweden.jpg> .
+
+wd:Q52938 ex:hasUncle wd:Q52945 .
+
+wd:Q152316 ex:hasUncle wd:Q153330 .
+
+wd:Q7523 ex:hasUncle wd:Q487543 .
+
+wd:Q34417 ex:hasUncle wd:Q150611 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20of%20Philip%20II%20of%20Spain%20by%20Sofonisba%20Anguissola%20-%20002b.jpg> .
+
+wd:Q150611 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Hans%20Bocksberger%20%28I%29%20-%20Emperor%20Ferdinand%20I%20-%20WGA02326.jpg> .
+
+wd:Q7723 ex:hasUncle wd:Q7729 .
+
+wd:Q7729 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/LouisBonaparte%20Holland.jpg> .
+
+wd:Q77087 ex:hasUncle wd:Q76480 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Klaus%20Mann%201944.jpg> .
+
+wd:Q76480 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Heinrich%20Mann%20in%20seinen%20M%C3%BCnchner%20Jahren.png> .
+
+wd:Q130752 ex:hasUncle wd:Q183698 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Elizabeth%20of%20Russia%20by%20V.Eriksen.jpg> .
+
+wd:Q183698 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Ivan%20V%20%28Russian%20museum%29.jpg> .
+
+wd:Q130752 ex:hasUncle wd:Q184868 .
+
+wd:Q189108 ex:hasUncle wd:Q172471 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Gratian%20Solidus.jpg> .
+
+wd:Q7520 ex:hasUncle wd:Q7517 .
+
+wd:Q7721 ex:hasUncle wd:Q7726 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Napoleon%20III%20by%20Mayer%20%26%20Pierson%20c1860%20%28cropped%29.png> .
+
+wd:Q46768 ex:hasUncle wd:Q46768 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/MSR%20-%20T%C3%AAte%20de%20l%27empreur%20Maximien%20Hercule%20-%20Inv%2034%20b%20%28cropped%29.jpg> .
+
+wd:Q177320 ex:hasUncle wd:Q7519 .
+
+wd:Q8404 ex:hasUncle wd:Q8433 .
+
+wd:Q8433 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Sacre%20Philippe5%20France%2001%20%28cropped%29.jpg> .
+
+wd:Q1352872 ex:hasUncle wd:Q134549 .
+
+wd:Q7523 ex:hasUncle wd:Q7519 .
+
+wd:Q37069 ex:hasUncle wd:Q37065 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Alexius4.jpg> .
+
+wd:Q37065 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Alexios%20III.jpg> .
+
+wd:Q172168 ex:hasUncle wd:Q46768 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Romuliana%20Galerius%20head.jpg> .
+
+wd:Q152923 ex:hasUncle wd:Q84192 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Rudolf%20Crown%20Prince%20of%20Austria%20LOC.jpg> .
+
+wd:Q102005 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/William%20II%20of%20England%20in%20miniature.jpg> .
+
+wd:Q178799 ex:hasUncle wd:Q162102 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Benedictus%20IX%20%28Abbey%20of%20Saint%20Mary%20of%20Grottaferrata%29.png> .
+
+wd:Q162102 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Benedykt%20VIII.jpg> .
+
+wd:Q7721 ex:hasUncle wd:Q517 .
+
+wd:Q517 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Jacques-Louis%20David%20-%20The%20Emperor%20Napoleon%20in%20His%20Study%20at%20the%20Tuileries%20-%20Google%20Art%20Project.jpg> .
+
+wd:Q152316 ex:hasUncle wd:Q154920 .
+
+wd:Q1769 ex:hasUncle wd:Q1769 .
+
+wd:Q49765 ex:hasUncle wd:Q7758 .
+
+wd:Q7758 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Sir%20Thomas%20Lawrence%20%281769-1830%29%20-%20Charles%20X%20%281757-1836%29%2C%20King%20of%20France%20-%20RCIN%20405138%20-%20Royal%20Collection.jpg> .
+
+wd:Q178799 ex:hasUncle wd:Q227978 .
+
+wd:Q227978 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Bari%20Exultet%20roll%201%20-%20emperors%20and%20pope%20%28pope1%29%20%28cropped%29.jpg> .
