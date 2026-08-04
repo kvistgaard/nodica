@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nodica – SPARQL</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!-- Apply YASGUI's persisted theme before first paint (its ThemeManager
+       sets data-theme on <html> and stores the choice under "yasgui_theme"). -->
+  <script>
+    (function () {
+      var theme = null;
+      try {
+        var stored = localStorage.getItem("yasgui_theme");
+        if (stored) {
+          try {
+            var parsed = JSON.parse(stored);
+            theme = parsed && (parsed.val || parsed.value || parsed);
+          } catch (e) {
+            theme = stored;
+          }
+        }
+      } catch (e) { /* storage unavailable */ }
+      if (theme !== "dark" && theme !== "light") {
+        theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+
+  <!-- Shared design tokens (D19) - same file index.html loads, so the two
+       pages cannot visually drift apart. Follows YASGUI's own theme switch:
+       its ThemeManager toggles data-theme="light|dark" on <html>. -->
+  <link rel="stylesheet" href="assets/theme.css">
+
+  <!-- Dependencies (pinned CDN versions) -->
+  <link rel="stylesheet" href="https://unpkg.com/@matdata/yasgui@5.20.3/build/yasgui.min.css">
+  <script src="https://unpkg.com/@matdata/yasgui@5.20.3/build/yasgui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/n3@1.17.4/browser/n3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    /* @matdata/yasgui@5.20.3 ships yasgui.min.css referencing a
+       "Font Awesome 7 Free" 900 woff2 that isn't actually included in the
+       published package (upstream packaging bug: the file 404s on every
+       CDN). Without it every toolbar/tab icon renders as a blank square.
+       This redeclaration for the exact same family/weight/style wins the
+       cascade (it's later in source order) and points at the equivalent,
+       CORS-enabled font from the official Font Awesome package instead. */
+    @font-face {
+      font-family: "Font Awesome 7 Free";
+      font-style: normal;
+      font-weight: 900;
+      font-display: block;
+      src: url("https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/webfonts/fa-solid-900.woff2") format("woff2");
+    }
+    html { background: var(--bg); }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { line-height: 0; margin: 0; color: var(--text); }
+    header .sub { color: var(--muted); font-size: 13px; }
+    header .spacer { flex: 1; }
+    .mode-link { color: var(--link); font-size: 13px; text-decoration: none; white-space: nowrap; }
+    .mode-link:hover { text-decoration: underline; }
+    #gh-link { display: flex; align-items: center; margin-left: 4px; color: var(--text); opacity: 0.8; transition: opacity 0.15s; }
+    #gh-link:hover { opacity: 1; }
+    /* Sized to its own content, not stretched: YASGUI lays out its editor
+       and results panels at fixed pixel heights internally, so forcing this
+       wrapper to fill the viewport (flex-grow) just leaves blank space
+       below the widget, on top of the real footer. Natural document flow
+       (scrolling the page when content is tall) matches how YASGUI is
+       meant to be embedded. */
+    #yasgui { padding: 8px 16px 16px; }
+    footer {
+      padding: 6px 16px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    footer a { color: var(--link); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    /* The Nodica graph container created by the plugin. These custom
+       properties are the plugin's public theming hook (D16-D19): it reads
+       them by these exact names (never our own --panel/--text/etc.) so it
+       stays portable to any host, not just this page. Aliasing them here
+       to our own tokens is what keeps file mode and SPARQL mode matching. */
+    .nodica-yasr {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      --nodica-label-color: var(--text);
+      --nodica-label-background: var(--panel);
+      --nodica-btn-bg: var(--btn-secondary-bg);
+      --nodica-btn-text: var(--btn-secondary-text);
+      --nodica-btn-hover: var(--btn-secondary-hover);
+      --nodica-accent-bg: var(--btn-graph-bg);
+      --nodica-accent-hover: var(--btn-graph-bg-hover);
+      --nodica-link: var(--link);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>
+      <!-- inline logo: letters follow the theme, the red "o" stays brand red -->
+      <svg width="111" height="34" viewBox="0 0 520 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nodica">
+        <text x="30" y="118" font-family="Arial, Helvetica, sans-serif" font-size="110" font-weight="700" fill="currentColor" letter-spacing="-1">n<tspan fill="#E23B2E">o</tspan>dica</text>
+      </svg>
+    </h1>
+    <span class="sub">SPARQL results as an image-filled graph (CONSTRUCT / DESCRIBE)</span>
+    <span class="spacer"></span>
+    <a class="mode-link" href="index.html" title="Switch to file mode: paste, upload or fetch RDF files and configure the graph">File mode</a>
+    <a id="gh-link" href="https://github.com/kvistgaard/nodica" target="_blank" rel="noopener noreferrer" aria-label="View source on GitHub" title="View source on GitHub">
+      <svg width="26" height="26" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+    </a>
+  </header>
+
+  <div id="yasgui"></div>
+
+  <footer>
+    SPARQL editor: <a href="https://github.com/Matdata-eu/Yasgui" target="_blank" rel="noopener noreferrer">YASGUI</a>,
+    the <a href="https://matdata.eu" target="_blank" rel="noopener noreferrer">Matdata</a> fork of
+    <a href="https://github.com/TriplyDB/Yasgui" target="_blank" rel="noopener noreferrer">Triply&#8217;s YASGUI</a>.
+    Graph rendering: <a href="https://github.com/kvistgaard/nodica" target="_blank" rel="noopener noreferrer">Nodica</a>.
+  </footer>
+
+  <script src="src/nodica.js"></script>
+  <script src="src/nodica-yasr-plugin.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      // The plugin self-registers on load; this is a safety net in case the
+      // script order above ever changes.
+      if (!(Yasgui.Yasr.plugins && Yasgui.Yasr.plugins.nodica)) {
+        NodicaYasrPlugin.register();
+      }
+
+      // Demo configuration (D8: inline configTurtle) — Wikidata portraits,
+      // English labels, node click opens the entity's wiki page (D11).
+      var DEMO_CONFIG = [
+        '@prefix cfg: <https://kvistgaard.github.io/config#> .',
+        '',
+        '<#sparql-demo> a cfg:Configuration ;',
+        '    cfg:imageProperty <http://www.wikidata.org/prop/direct/P18> ;',
+        '    cfg:labelProperty <http://www.w3.org/2000/01/rdf-schema#label> ;',
+        '    cfg:nodeSize 60 ;',
+        '    cfg:edgeLength 250 ;',
+        '    cfg:dereferenceRule [',
+        '        cfg:uriPrefix "http://www.wikidata.org/entity/" ;',
+        '        cfg:template  "https://www.wikidata.org/wiki/{LOCAL}"',
+        '    ] .',
+      ].join("\n");
+
+      var DEFAULT_QUERY = [
+        'PREFIX wd:   <http://www.wikidata.org/entity/>',
+        'PREFIX wdt:  <http://www.wikidata.org/prop/direct/>',
+        'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>',
+        '',
+        '# Johann Sebastian Bach and his children, with portraits (wdt:P18).',
+        '# Nodica draws CONSTRUCT/DESCRIBE results; try your own graph queries.',
+        'CONSTRUCT {',
+        '  ?child wdt:P22 wd:Q1339 .',
+        '  wd:Q1339 wdt:P18 ?bachImg ; rdfs:label ?bachLabel .',
+        '  ?child wdt:P18 ?childImg ; rdfs:label ?childLabel .',
+        '}',
+        'WHERE {',
+        '  wd:Q1339 wdt:P40 ?child .',
+        '  OPTIONAL { wd:Q1339 wdt:P18 ?bachImg . }',
+        '  OPTIONAL { ?child wdt:P18 ?childImg . }',
+        '  wd:Q1339 rdfs:label ?bachLabel . FILTER (LANG(?bachLabel) = "en")',
+        '  ?child rdfs:label ?childLabel . FILTER (LANG(?childLabel) = "en")',
+        '}',
+      ].join("\n");
+
+      // Static defaults must be set before the Yasgui instance is created.
+      // The 5.20.3 bundle registers: Table, Graph, Geo, response, boolean, error.
+      var Yasr = Yasgui.Yasr;
+      var order = ["nodica"].concat(
+        ["Table", "Graph", "response", "boolean", "error"].filter(function (name) {
+          return Yasr.plugins && Yasr.plugins[name];
+        })
+      );
+      Yasr.defaults.pluginOrder = order;
+      Yasr.defaults.defaultPlugin = "nodica";
+      Yasr.defaults.plugins.nodica = {
+        enabled: true,
+        dynamicConfig: { configTurtle: DEMO_CONFIG, height: "560px" },
+      };
+      Yasgui.Yasqe.defaults.value = DEFAULT_QUERY;
+
+      var yasgui = new Yasgui(document.getElementById("yasgui"), {
+        requestConfig: {
+          endpoint: "https://query.wikidata.org/sparql",
+          // CONSTRUCT/DESCRIBE responses arrive as Turtle -> Nodica.parseRdf.
+          acceptHeaderGraph: "text/turtle",
+        },
+        copyEndpointOnNewTab: true,
+      });
+
+      // Run the demo query immediately so the page shows a graph on first
+      // load, like the file-mode app does with its built-in sample.
+      var tab = yasgui.getTab();
+      if (tab) tab.query().catch(function () { /* endpoint hiccup; Run button still works */ });
+    })();
+  </script>
+</body>
+</html>

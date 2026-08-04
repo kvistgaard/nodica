@@ -18,7 +18,7 @@
     vann:preferredNamespaceUri "https://kvistgaard.github.io/config#" ;
     dcterms:creator <https://github.com/kvistgaard> ;
     dcterms:created "2026-06-12"^^xsd:date ;
-    owl:versionInfo "0.2.0" .
+    owl:versionInfo "0.3.0" .
 
 #################################################################
 # Classes
@@ -48,6 +48,14 @@ cfg:labelProperty
     rdfs:comment "The RDF property whose object supplies the node label. Defaults to rdfs:label."@en ;
     rdfs:domain cfg:Configuration ;
     rdfs:range rdf:Property ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
+
+cfg:edgeLabelLanguage
+    a owl:DatatypeProperty ;
+    rdfs:label "edge label language"@en ;
+    rdfs:comment "BCP47 language tag preferred when a predicate itself has a labelProperty value (e.g. an rdfs:label on the property URI) in more than one language. When the predicate has a label in this language it is used to label edges and the property filter, in place of the shortened/prefixed URI; a label in another language is used if none matches; the URI is used only if the predicate has no label at all. Defaults to \"en\"."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:string ;
     rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
 
 cfg:dataSource

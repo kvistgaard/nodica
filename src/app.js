@@ -144,6 +144,7 @@
   var SETTING_INPUTS = {
     imageProperty: "s-imageProperty",
     labelProperty: "s-labelProperty",
+    edgeLabelLanguage: "s-edgeLabelLanguage",
     nodeSize: "s-nodeSize",
     edgeLength: "s-edgeLength",
     edgeWidth: "s-edgeWidth",

@@ -110,6 +110,41 @@ function read(rel) {
   const a4 = model4.nodes.find((n) => n.id === "http://x.org/a");
   check("http://schema.org/image matched", a4 && a4.image === "http://img/1", a4);
 
+  /* ---- edge/property labels from the data itself (D17) ------------------ */
+  console.log("edge labels: property's own rdfs:label (D17)");
+  const propLabelData = await IG.parseRdf(
+    '@prefix ex: <http://x.org/> . @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n' +
+    'ex:hasParent rdfs:label "father"@en, "Vater"@de .\n' +
+    'ex:noLabel rdfs:label "sans langue" .\n' +
+    'ex:a ex:hasParent ex:b ; ex:noLabel ex:c ; ex:unlabelled ex:d .'
+  );
+  const modelEn = IG.buildModel(propLabelData.quads, IG.mergeSettings(), propLabelData.prefixes);
+  const edgeHasParent = modelEn.edges.find((e) => e.predicate === "http://x.org/hasParent");
+  check("english property label used for edge", edgeHasParent && edgeHasParent.label === "father", edgeHasParent && edgeHasParent.label);
+  const edgeNoLabel = modelEn.edges.find((e) => e.predicate === "http://x.org/noLabel");
+  check("language-free label used when no language matches", edgeNoLabel && edgeNoLabel.label === "sans langue", edgeNoLabel && edgeNoLabel.label);
+  const edgeUnlabelled = modelEn.edges.find((e) => e.predicate === "http://x.org/unlabelled");
+  check("falls back to shortened URI when the property has no label", edgeUnlabelled && edgeUnlabelled.label === "ex:unlabelled", edgeUnlabelled && edgeUnlabelled.label);
+  const predHasParent = modelEn.predicates.find((p) => p.uri === "http://x.org/hasParent");
+  check("property filter panel uses the same label", predHasParent && predHasParent.label === "father", predHasParent && predHasParent.label);
+  check("property-label triples don't spawn orphan nodes",
+    !modelEn.nodes.some((n) => n.id === "http://x.org/hasParent" || n.id === "http://x.org/noLabel"),
+    modelEn.nodes.map((n) => n.id));
+
+  const modelDe = IG.buildModel(propLabelData.quads, IG.mergeSettings({ edgeLabelLanguage: "de" }), propLabelData.prefixes);
+  const edgeHasParentDe = modelDe.edges.find((e) => e.predicate === "http://x.org/hasParent");
+  check("edgeLabelLanguage selects the German label", edgeHasParentDe && edgeHasParentDe.label === "Vater", edgeHasParentDe && edgeHasParentDe.label);
+
+  const modelFr = IG.buildModel(propLabelData.quads, IG.mergeSettings({ edgeLabelLanguage: "fr" }), propLabelData.prefixes);
+  const edgeHasParentFr = modelFr.edges.find((e) => e.predicate === "http://x.org/hasParent");
+  check("unmatched language falls back to any available label",
+    edgeHasParentFr && (edgeHasParentFr.label === "father" || edgeHasParentFr.label === "Vater"),
+    edgeHasParentFr && edgeHasParentFr.label);
+
+  check("edgeLabelLanguage defaults to en", IG.DEFAULTS.edgeLabelLanguage === "en", IG.DEFAULTS.edgeLabelLanguage);
+  const edgeLangRoundTrip = await IG.parseConfig(IG.configToTurtle(IG.mergeSettings({ edgeLabelLanguage: "de" })));
+  check("edgeLabelLanguage round-trips through configToTurtle", edgeLangRoundTrip.edgeLabelLanguage === "de", edgeLangRoundTrip.edgeLabelLanguage);
+
   /* ---- config defaults + overrides ------------------------------------- */
   console.log("mergeSettings + configToTurtle round-trip");
   const merged = IG.mergeSettings({ nodeSize: 99 }, { edgeColor: "#123456" });
@@ -336,6 +371,83 @@ function read(rel) {
     threw = true;
   }
   check("invalid input rejects", threw);
+
+  /* ---- YASR plugin adapter (D15) ---------------------------------------- */
+  console.log("YASR plugin adapter (D15)");
+  const yasrRegistry = {};
+  global.Yasgui = {
+    Yasr: {
+      registerPlugin(name, plugin) { yasrRegistry[name] = plugin; },
+      plugins: yasrRegistry,
+    },
+  };
+  require(path.join(__dirname, "..", "src", "nodica-yasr-plugin.js"));
+  const Plugin = yasrRegistry.nodica;
+  check("registers as 'nodica'", typeof Plugin === "function");
+  check("exposed as NodicaYasrPlugin", globalThis.NodicaYasrPlugin === Plugin);
+
+  const mockYasr = (contentType, raw) => ({
+    results: {
+      getOriginalResponseAsString: () => raw,
+      getContentType: () => contentType,
+    },
+    config: { plugins: {} },
+  });
+  const inst = new Plugin(mockYasr("text/turtle", "@prefix ex: <http://x.org/> . ex:a ex:p ex:b ."));
+  check("priority is a number", typeof inst.priority === "number", inst.priority);
+  check("label present", typeof inst.label === "string", inst.label);
+  check("draw is a function", typeof inst.draw === "function");
+  check("destroy is a function", typeof inst.destroy === "function");
+  check("hiddenPredicates starts empty", inst.hiddenPredicates && Object.keys(inst.hiddenPredicates).length === 0, inst.hiddenPredicates);
+  // D18: file-mode graph controls (property filter, fix layout, unpin, fit),
+  // rebuilt into the YASR results pane on every draw(). DOM-heavy behavior
+  // (actual clicks, panel population) is browser-verified, not here; this
+  // just locks down the interface the DOM tests below depend on.
+  check("_buildChrome is a function", typeof inst._buildChrome === "function");
+  check("_renderPropertyPanel is a function", typeof inst._renderPropertyPanel === "function");
+  check("_applyPredicateFilter is a function", typeof inst._applyPredicateFilter === "function");
+
+  console.log("YASR plugin canHandleResults (RDF in, SELECT out)");
+  check("handles text/turtle", inst.canHandleResults() === true);
+  check("handles turtle with charset param",
+    new Plugin(mockYasr("text/turtle;charset=utf-8", "<http://a> <http://b> <http://c> .")).canHandleResults() === true);
+  check("handles application/n-triples",
+    new Plugin(mockYasr("application/n-triples", "<http://a> <http://b> <http://c> .")).canHandleResults() === true);
+  check("handles application/trig",
+    new Plugin(mockYasr("application/trig", "@prefix ex: <http://x.org/> . ex:g { ex:a ex:p ex:b . }")).canHandleResults() === true);
+  check("declines SPARQL JSON (SELECT)",
+    new Plugin(mockYasr("application/sparql-results+json", '{"head":{"vars":[]}}')).canHandleResults() === false);
+  check("declines SPARQL XML",
+    new Plugin(mockYasr("application/sparql-results+xml", '<?xml version="1.0"?><sparql/>')).canHandleResults() === false);
+  check("text/plain sniffed as N-Triples",
+    new Plugin(mockYasr("text/plain", "<http://a> <http://b> <http://c> .")).canHandleResults() === true);
+  check("text/plain prose declined",
+    new Plugin(mockYasr("text/plain", "hello world")).canHandleResults() === false);
+  check("missing content type sniffed as Turtle",
+    new Plugin(mockYasr("", "@prefix ex: <http://x.org/> . ex:a ex:p ex:b .")).canHandleResults() === true);
+  check("empty response declined",
+    new Plugin(mockYasr("text/turtle", "")).canHandleResults() === false);
+
+  console.log("YASR plugin settings resolution (D8)");
+  const cfgYasr = mockYasr("text/turtle", "");
+  cfgYasr.config.plugins.nodica = {
+    dynamicConfig: {
+      configTurtle:
+        '@prefix cfg: <https://kvistgaard.github.io/config#> .\n' +
+        '<http://x.org/c> a cfg:Configuration ;\n' +
+        '  cfg:nodeSize 42 ;\n' +
+        '  cfg:imageProperty <http://www.wikidata.org/prop/direct/P18> .',
+      nodeSize: 77,
+      height: "600px",
+      evilKey: "dropped",
+    },
+  };
+  const resolved = await new Plugin(cfgYasr)._resolveSettings();
+  check("configTurtle parsed", resolved.imageProperty === "http://www.wikidata.org/prop/direct/P18", resolved.imageProperty);
+  check("flat override beats configTurtle", resolved.nodeSize === 77, resolved.nodeSize);
+  check("unknown override key dropped", !("evilKey" in resolved), Object.keys(resolved));
+  check("height is layout-only, not a setting", !("height" in resolved));
+  check("defaults fill the gaps", resolved.edgeLength === IG.DEFAULTS.edgeLength, resolved.edgeLength);
 
   console.log("\n" + (failures === 0 ? "All tests passed." : failures + " test(s) FAILED."));
   process.exit(failures === 0 ? 0 : 1);

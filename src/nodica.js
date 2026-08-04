@@ -20,6 +20,7 @@
   var DEFAULTS = {
     imageProperty: "https://schema.org/image",
     labelProperty: "http://www.w3.org/2000/01/rdf-schema#label",
+    edgeLabelLanguage: "en",
     nodeSize: 50,
     edgeLength: 200,
     edgeWidth: 4,
@@ -35,6 +36,7 @@
   var CONFIG_TERMS = {
     imageProperty: "iri",
     labelProperty: "iri",
+    edgeLabelLanguage: "string",
     dataSource: "iri",
     fallback: "iri",
     settingsLocked: "boolean",
@@ -277,6 +279,7 @@
       s.dataSource ? "    cfg:dataSource         <" + s.dataSource + "> ;" : null,
       "    cfg:imageProperty      <" + s.imageProperty + "> ;",
       "    cfg:labelProperty      <" + s.labelProperty + "> ;",
+      '    cfg:edgeLabelLanguage  "' + s.edgeLabelLanguage + '" ;',
       "    cfg:nodeSize           " + s.nodeSize + " ;",
       "    cfg:edgeLength         " + s.edgeLength + " ;",
       "    cfg:edgeWidth          " + s.edgeWidth + " ;",
@@ -430,6 +433,10 @@
    * - Tooltips (titles) are HTML-escaped; with settings.upgradeHttpImages,
    *   http:// image URLs are rewritten to https:// (D9).
    * - Distinct predicates are aggregated with counts for the filter (D12).
+   * - Edge/predicate-filter labels: a property's own rdfs:label (or
+   *   whatever labelProperty is configured), in settings.edgeLabelLanguage
+   *   if present, else any language, else the prefixed/shortened URI (D17).
+   *   A predicate-only URI's label triple doesn't spawn a node of its own.
    *
    * @returns { nodes: [], edges: [], predicates: [], stats: {} }
    */
@@ -441,8 +448,33 @@
     var seen = {}; // s|p|o -> true, for cross-graph dedup
     var triples = [];
 
+    // Candidate labels for predicate URIs (labelProperty triples whose
+    // subject happens to be used elsewhere as a predicate): uri -> { byLang,
+    // noLang, first }, resolved into edge/predicate labels after pass 1 once
+    // every triple - and thus every actually-used predicate - is known.
+    var propertyLabelCandidates = {};
+
+    // Every URI used as a predicate anywhere in the input, known upfront so
+    // pass 1 can tell "a property's own label" from "an ordinary resource's
+    // label" (D17): a label triple on a predicate-only URI must not spawn a
+    // bare node just because it was "consumed" - its label is for the edge.
+    var predicateUris = {};
+    for (var pu = 0; pu < quads.length; pu++) predicateUris[quads[pu].predicate.value] = true;
+
     function termId(term) {
       return term.termType === "BlankNode" ? "_:" + term.value : term.value;
+    }
+
+    function recordPropertyLabelCandidate(uri, term) {
+      if (term.termType !== "Literal") return;
+      var c = propertyLabelCandidates[uri] || (propertyLabelCandidates[uri] = { byLang: {} });
+      var lang = (term.language || "").toLowerCase();
+      if (lang) {
+        if (!(lang in c.byLang)) c.byLang[lang] = term.value;
+      } else if (c.noLang === undefined) {
+        c.noLang = term.value;
+      }
+      if (c.first === undefined) c.first = term.value;
     }
 
     // Pass 1: dedupe across graphs, collect consumed (image/label) triples.
@@ -460,10 +492,33 @@
       }
       if (samePredicate(q.predicate.value, s.labelProperty)) {
         if (!(sid in labels)) labels[sid] = q.object.value;
-        consumedSubjects[sid] = q.subject;
+        recordPropertyLabelCandidate(sid, q.object);
+        // A URI used only as a predicate shouldn't get a node of its own
+        // just because it has a label; a URI that's also a real resource
+        // (subject/object elsewhere) still gets one, via consumedSubjects
+        // as before, or naturally through that other triple.
+        if (!predicateUris[sid]) consumedSubjects[sid] = q.subject;
         continue; // consumed
       }
       triples.push(q);
+    }
+
+    // Resolve each candidate to one label: the configured language wins,
+    // then any plain (language-free) literal, then whichever came first.
+    var edgeLabelLang = String(s.edgeLabelLanguage || "en").toLowerCase();
+    var propertyLabels = {};
+    Object.keys(propertyLabelCandidates).forEach(function (uri) {
+      var c = propertyLabelCandidates[uri];
+      propertyLabels[uri] =
+        c.byLang[edgeLabelLang] !== undefined ? c.byLang[edgeLabelLang] :
+        c.noLang !== undefined ? c.noLang :
+        c.first;
+    });
+
+    function edgeLabel(predicateUri) {
+      return propertyLabels[predicateUri] !== undefined
+        ? propertyLabels[predicateUri]
+        : shorten(predicateUri, prefixes);
     }
 
     // Pass 2: build nodes and edges.
@@ -515,7 +570,9 @@
         id: "e" + t,
         from: from,
         to: to,
-        label: shorten(quad.predicate.value, prefixes),
+        // The property's own rdfs:label (in edgeLabelLanguage, D17) wins
+        // over the prefixed/shortened URI when the data supplies one.
+        label: edgeLabel(quad.predicate.value),
         // predicate kept raw in `predicate` for programmatic use (Fractal),
         // escaped in `title` because vis renders titles as HTML
         predicate: quad.predicate.value,
@@ -541,7 +598,7 @@
     });
     var predicates = Object.keys(predicateCounts)
       .map(function (p) {
-        return { uri: p, label: shorten(p, prefixes), count: predicateCounts[p] };
+        return { uri: p, label: edgeLabel(p), count: predicateCounts[p] };
       })
       .sort(function (a, b) {
         return b.count - a.count || (a.label < b.label ? -1 : 1);
@@ -638,6 +695,7 @@
    * events for the host app ('nodeDoubleClick', 'edgeClick', 'nodeClick').
    */
   function GraphView(container, model, settings) {
+    this.container = container;
     this.settings = mergeSettings(settings);
     this.nodes = new vis.DataSet(model.nodes);
     this.edges = new vis.DataSet(model.edges);
@@ -667,7 +725,48 @@
         // Fractal Graph hook (D3): host can zoom into a sub-graph from here.
         self._emit("edgeClick", { edge: self.edges.get(params.edges[0]) });
     });
+
+    this._syncThemeColors();
+    this._watchThemeChanges();
   }
+
+  /**
+   * Theme support (D15): if the container has --nodica-label-color and/or
+   * --nodica-label-background CSS custom properties (set by the host page,
+   * scoped to its light/dark theme), apply them to node and edge labels.
+   * toVisOptions() hard-codes black-on-white labels, which is illegible on a
+   * dark host page; hosts that don't set these variables see no change.
+   */
+  GraphView.prototype._syncThemeColors = function () {
+    if (!this.network || !this.container || typeof getComputedStyle !== "function") return;
+    var style = getComputedStyle(this.container);
+    var labelColor = (style.getPropertyValue("--nodica-label-color") || "").trim();
+    var labelBackground = (style.getPropertyValue("--nodica-label-background") || "").trim();
+    if (!labelColor && !labelBackground) return;
+    var options = {};
+    if (labelColor) {
+      options.nodes = { font: { color: labelColor } };
+      options.edges = { font: { color: labelColor } };
+    }
+    if (labelBackground) {
+      options.edges = options.edges || {};
+      options.edges.font = options.edges.font || {};
+      options.edges.font.background = labelBackground;
+    }
+    this.network.setOptions(options);
+  };
+
+  /** Re-apply theme colors whenever the host flips data-theme on <html>
+   *  (e.g. a theme toggle, or YASGUI's own theme switch). */
+  GraphView.prototype._watchThemeChanges = function () {
+    if (typeof MutationObserver === "undefined" || typeof document === "undefined") return;
+    var self = this;
+    this._themeObserver = new MutationObserver(function () { self._syncThemeColors(); });
+    this._themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  };
 
   GraphView.prototype._emit = function (event, payload) {
     (this._handlers[event] || []).forEach(function (cb) {
@@ -685,6 +784,7 @@
   GraphView.prototype.updateSettings = function (partial) {
     this.settings = mergeSettings(this.settings, partial);
     this.network.setOptions(toVisOptions(this.settings));
+    this._syncThemeColors();
   };
 
   /** Fix (freeze) or release the force layout. */
@@ -718,6 +818,10 @@
   };
 
   GraphView.prototype.destroy = function () {
+    if (this._themeObserver) {
+      this._themeObserver.disconnect();
+      this._themeObserver = null;
+    }
     this.network.destroy();
   };
 
