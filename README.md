@@ -156,7 +156,7 @@ Prefixes resolve against the query's own `PREFIX` declarations, falling back to 
 
 Push to `main`, enable GitHub Pages from the repo root, and the app is live at `https://<user>.github.io/<repo>/` – no build step. `index.html` is SPARQL mode (the bare URL); file mode is `file-mode.html` alongside it.
 
-To point file mode at a different dataset, edit `cfg:dataSource` and the dereference rules in `settings.ttl`. To change the default SPARQL query, edit `examples/influences.rq` (and its inline `file://` fallback copy in `index.html` – a test keeps the two in sync).
+To point file mode at a different dataset, edit `cfg:dataSource` and the dereference rules in `settings.ttl`. To change the default SPARQL query, edit `examples/influences.rq`, then run `npm run sync:query` to copy it into the inline `file://` fallback in `index.html` (`npm test` fails if the two drift).
 
 Release history is in [`CHANGELOG.md`](CHANGELOG.md); the reasoning behind every design decision is in [`decisions-log.md`](decisions-log.md).
 

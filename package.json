@@ -7,7 +7,8 @@
   "scripts": {
     "test": "node test/core-test.js",
     "test:browser": "node test/browser-smoke.mjs",
-    "serve": "npx http-server -p 8090 -c-1 ."
+    "serve": "npx http-server -p 8090 -c-1 .",
+    "sync:query": "node tools/sync-query.cjs"
   },
   "devDependencies": {
     "n3": "^1.17.4"

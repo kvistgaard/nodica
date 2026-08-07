@@ -32,4 +32,4 @@ WHERE {
   FILTER (LANG(?aLabel) = "en")
   FILTER (LANG(?bLabel) = "en")
 }
-LIMIT 50
+LIMIT 70
