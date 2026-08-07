@@ -18,7 +18,7 @@
     vann:preferredNamespaceUri "https://kvistgaard.github.io/config#" ;
     dcterms:creator <https://github.com/kvistgaard> ;
     dcterms:created "2026-06-12"^^xsd:date ;
-    owl:versionInfo "0.3.0" .
+    owl:versionInfo "0.4.0" .
 
 #################################################################
 # Classes
@@ -147,6 +147,14 @@ cfg:template
 #################################################################
 # Datatype properties – dimensions (pixels)
 #################################################################
+
+cfg:imageMaxWidth
+    a owl:DatatypeProperty ;
+    rdfs:label "image max width"@en ;
+    rdfs:comment "Preferred width in pixels for node images that come from a MediaWiki Special:FilePath URL (Wikimedia Commons and friends). That endpoint serves the original upload, routinely tens of megabytes, so the width is requested as a query parameter and the thumbnailer returns a scaled rendering instead. Images from other hosts, and URLs that already carry a width, are left untouched. 0 disables the rewrite and loads originals. Defaults to 400."@en ;
+    rdfs:domain cfg:Configuration ;
+    rdfs:range xsd:decimal ;
+    rdfs:isDefinedBy <https://kvistgaard.github.io/config> .
 
 cfg:nodeSize
     a owl:DatatypeProperty ;

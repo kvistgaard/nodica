@@ -34,9 +34,15 @@
        pages cannot visually drift apart. -->
   <link rel="stylesheet" href="assets/theme.css">
 
-  <!-- Dependencies (pinned CDN versions) -->
-  <script src="https://cdn.jsdelivr.net/npm/n3@1.17.4/browser/n3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <!-- Open the TLS connections while the HTML is still parsing. -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin>
+
+  <!-- Dependencies (pinned CDN versions). `defer` keeps them off the parser's
+       critical path; deferred scripts still run in order and still run before
+       DOMContentLoaded, which is what app.js waits for. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/n3@1.17.4/browser/n3.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -249,6 +255,7 @@
         <label>Image property <input type="text" id="s-imageProperty"></label>
         <label>Label property <input type="text" id="s-labelProperty"></label>
         <label title="If a property has an rdfs:label in this language, edges use it instead of the URI">Property language <input type="text" id="s-edgeLabelLanguage"></label>
+        <label title="Ask Wikimedia Commons for a thumbnail this many pixels wide instead of the full-size original. 0 loads originals (slow: they are often tens of megabytes).">Image width <input type="number" id="s-imageMaxWidth" min="0" step="50"></label>
         <label>Node size <input type="number" id="s-nodeSize" min="5" step="5"></label>
         <label>Edge length <input type="number" id="s-edgeLength" min="20" step="10"></label>
         <label>Edge width <input type="number" id="s-edgeWidth" min="1" step="1"></label>
@@ -286,8 +293,8 @@
     <div id="graph"></div>
   </div>
 
-  <script src="src/nodica.js"></script>
-  <script src="src/app.js"></script>
+  <script defer src="src/nodica.js"></script>
+  <script defer src="src/app.js"></script>
   <script>
     (function () {
       "use strict";

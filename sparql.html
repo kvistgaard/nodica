@@ -34,11 +34,21 @@
        its ThemeManager toggles data-theme="light|dark" on <html>. -->
   <link rel="stylesheet" href="assets/theme.css">
 
-  <!-- Dependencies (pinned CDN versions) -->
+  <!-- Open the TLS connections while the HTML is still parsing: the YASGUI
+       bundle alone is ~3 MB, and the endpoint is contacted right after it. -->
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://query.wikidata.org">
+  <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin>
+
+  <!-- Dependencies (pinned CDN versions). `defer` keeps 3+ MB of JavaScript
+       off the parser's critical path, so the header and footer paint while it
+       downloads; deferred scripts keep their relative order and all run before
+       DOMContentLoaded, which the page script below now waits for. -->
   <link rel="stylesheet" href="https://unpkg.com/@matdata/yasgui@5.20.3/build/yasgui.min.css">
-  <script src="https://unpkg.com/@matdata/yasgui@5.20.3/build/yasgui.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/n3@1.17.4/browser/n3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <script defer src="https://unpkg.com/@matdata/yasgui@5.20.3/build/yasgui.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/n3@1.17.4/browser/n3.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -137,16 +147,17 @@
   <div id="yasgui"></div>
 
   <footer>
-    SPARQL editor: <a href="https://github.com/Matdata-eu/Yasgui" target="_blank" rel="noopener noreferrer">YASGUI</a>,
-    the <a href="https://matdata.eu" target="_blank" rel="noopener noreferrer">Matdata</a> fork of
-    <a href="https://github.com/TriplyDB/Yasgui" target="_blank" rel="noopener noreferrer">Triply&#8217;s YASGUI</a>.
+    SPARQL editor: <a href="https://matdata.eu" target="_blank" rel="noopener noreferrer">Matdata&#8217;s</a> <a href="https://github.com/Matdata-eu/Yasgui" target="_blank" rel="noopener noreferrer">YASGUI</a>.
     Graph rendering: <a href="https://github.com/kvistgaard/nodica" target="_blank" rel="noopener noreferrer">Nodica</a>.
   </footer>
 
-  <script src="src/nodica.js"></script>
-  <script src="src/nodica-yasr-plugin.js"></script>
+  <script defer src="src/nodica.js"></script>
+  <script defer src="src/nodica-yasr-plugin.js"></script>
   <script>
-    (function () {
+    // Deferred scripts run before DOMContentLoaded, so waiting for it is what
+    // lets everything above be deferred (an inline script runs immediately and
+    // would find Yasgui undefined).
+    document.addEventListener("DOMContentLoaded", function () {
       "use strict";
 
       // The plugin self-registers on load; this is a safety net in case the
@@ -217,11 +228,39 @@
         copyEndpointOnNewTab: true,
       });
 
-      // Run the demo query immediately so the page shows a graph on first
-      // load, like the file-mode app does with its built-in sample.
+      // Run the demo query on a first visit, so the page shows a graph like
+      // file mode does with its built-in sample - but only then. YASGUI
+      // restores the user's own tabs and their last results from
+      // localStorage, and re-running those on every page load meant a slow
+      // endpoint round-trip on each visit, for a query the user did not ask
+      // to repeat and whose results were already there.
       var tab = yasgui.getTab();
-      if (tab) tab.query().catch(function () { /* endpoint hiccup; Run button still works */ });
-    })();
+      if (tab && !hasStoredResults(tab) && isUntouchedDemo(tab)) {
+        tab.query().catch(function () { /* endpoint hiccup; Run button still works */ });
+      }
+
+      /** True when YASGUI restored a response for this tab (Yasr sets
+       *  `results` from storage in its own constructor). */
+      function hasStoredResults(t) {
+        try {
+          var results = t.getYasr() && t.getYasr().results;
+          return !!(results && results.getOriginalResponseAsString &&
+            results.getOriginalResponseAsString());
+        } catch (e) {
+          return false;
+        }
+      }
+
+      /** True only while the tab still holds the demo query verbatim, so a
+       *  query the user wrote or edited is never re-executed behind them. */
+      function isUntouchedDemo(t) {
+        try {
+          return t.getQuery().trim() === DEFAULT_QUERY.trim();
+        } catch (e) {
+          return false;
+        }
+      }
+    });
   </script>
 </body>
 </html>

@@ -88,6 +88,7 @@
     '    cfg:dereferenceRule    [ cfg:uriPrefix "http://www.wikidata.org/entity/" ;',
     '                             cfg:template  "https://www.wikidata.org/wiki/{LOCAL}" ] ;',
     '    cfg:imageProperty      wdt:P18 ;',
+    '    cfg:imageMaxWidth      400 ;',
     '    cfg:nodeSize           50 ;',
     '    cfg:edgeLength         200 ;',
     '    cfg:edgeWidth          4 ;',
@@ -136,7 +137,6 @@
   var lastSynced = {};
   var persisted = loadPersistedOverrides();
   var renderSeq = 0;
-  var MAX_PHYSICS_NODES = 1500;
   var configBaseIRI = null;
   var lastModel = null;
   var hiddenPredicates = {};
@@ -145,6 +145,7 @@
     imageProperty: "s-imageProperty",
     labelProperty: "s-labelProperty",
     edgeLabelLanguage: "s-edgeLabelLanguage",
+    imageMaxWidth: "s-imageMaxWidth",
     nodeSize: "s-nodeSize",
     edgeLength: "s-edgeLength",
     edgeWidth: "s-edgeWidth",
@@ -156,10 +157,23 @@
     physicsEnabled: "s-physicsEnabled",
   };
 
-  function status(kind, message) {
+  /* The last full result message, so transient progress lines (layout
+     stabilisation) can borrow the status area and hand it back. */
+  var lastStatus = { kind: "", message: "" };
+
+  function showStatus(kind, message) {
     var el = $("status");
     el.className = kind || "";
     el.textContent = message || "";
+  }
+
+  function status(kind, message) {
+    lastStatus = { kind: kind || "", message: message || "" };
+    showStatus(kind, message);
+  }
+
+  function restoreStatus() {
+    showStatus(lastStatus.kind, lastStatus.message);
   }
 
   function inputValue(input) {
@@ -244,16 +258,23 @@
   function buildAndShow(parsed) {
     var model = Nodica.buildModel(parsed.quads, effective, parsed.prefixes);
 
-    var perfNote = "";
-    if (model.nodes.length > MAX_PHYSICS_NODES && effective.physicsEnabled) {
-      effective.physicsEnabled = false;
-      perfNote = "\nLarge graph (" + model.nodes.length + " nodes): physics switched off to keep the page responsive. Re-enable it via the Physics checkbox if needed.";
+    var guarded = Nodica.applyPerformanceGuards(effective, model);
+    var perfNote = guarded.note ? "\n" + guarded.note : "";
+    if (guarded.note) {
+      effective = guarded.settings;
       settingsToInputs(effective);
     }
 
     if (view) view.destroy();
     view = new Nodica.GraphView($("graph"), model, effective);
     model.perfNote = perfNote;
+
+    // vis-network stabilises behind a blank canvas, so say what is happening
+    // rather than leaving an empty panel (D20).
+    view.on("stabilizationProgress", function (p) {
+      showStatus("info", "Laying out " + model.nodes.length + " nodes... " + p.percent + "%");
+    });
+    view.on("stabilized", restoreStatus);
 
     var clickTimer = null;
     view.on("nodeClick", function (e) {
@@ -363,12 +384,17 @@
 
         var model = buildAndShow(parsed);
         var st = model.stats;
+        // Images keep arriving after the layout is done; on an image-heavy
+        // graph that tail is the slowest part and shouldn't look like a stall.
+        var imageNote = st.imagesResolved > 25
+          ? "\nThe " + st.imagesResolved + " images load in the background; nodes fill in as they arrive."
+          : "";
         status(
           det.detected || model.perfNote || fallbackNote ? "info" : "success",
           "Rendered " + st.nodes + " nodes, " + st.edges + " edges " +
           "(from " + st.inputQuads + " input quads; " +
           st.imagesResolved + " images, " + st.labelsResolved + " labels resolved)." +
-          fallbackNote + note + model.perfNote
+          fallbackNote + note + model.perfNote + imageNote
         );
       })
       .catch(function (err) {
@@ -413,25 +439,33 @@
     });
   }
 
+  /** Fetch a document into a textarea. Resolves on success, rejects (after
+   *  reporting) on failure, so callers can sequence several fetches. */
+  function fetchInto(url, textareaId, onLoaded) {
+    status("info", "Fetching " + url + " ...");
+    return fetch(url, { headers: { Accept: "text/turtle, application/trig, application/n-triples, */*" } })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status + " " + r.statusText);
+        return r.text();
+      })
+      .then(function (text) {
+        $(textareaId).value = text;
+        if (onLoaded) onLoaded(url);
+      })
+      .catch(function (err) {
+        status("error", "Fetch failed: " + err.message +
+          (location.protocol === "file:" ? "\n(URL fetching does not work from file:// pages.)" : ""));
+        throw err;
+      });
+  }
+
   function wireUrlLoad(buttonId, urlId, textareaId, onLoaded) {
     $(buttonId).addEventListener("click", function () {
       var url = $(urlId).value.trim();
       if (!url) return;
-      status("info", "Fetching " + url + " ...");
-      fetch(url, { headers: { Accept: "text/turtle, application/trig, application/n-triples, */*" } })
-        .then(function (r) {
-          if (!r.ok) throw new Error("HTTP " + r.status + " " + r.statusText);
-          return r.text();
-        })
-        .then(function (text) {
-          $(textareaId).value = text;
-          if (onLoaded) onLoaded(url);
-          status("info", "Fetched " + url + ". Click Render.");
-        })
-        .catch(function (err) {
-          status("error", "Fetch failed: " + err.message +
-            (location.protocol === "file:" ? "\n(URL fetching does not work from file:// pages.)" : ""));
-        });
+      // Fetching then waiting for a Render click was a step nobody wanted:
+      // the only reason to fetch is to see it.
+      fetchInto(url, textareaId, onLoaded).then(render, function () { /* reported */ });
     });
   }
 
@@ -463,7 +497,9 @@
 
     $("apply-settings").addEventListener("click", function () {
       var dirty = collectOverrides();
-      var needsRebuild = "imageProperty" in dirty || "labelProperty" in dirty;
+      // These are baked into the model at build time, not applied by vis.
+      var needsRebuild = ["imageProperty", "labelProperty", "imageMaxWidth", "edgeLabelLanguage"]
+        .some(function (key) { return key in dirty; });
       if (Object.keys(dirty).length > 0) {
         persisted = Nodica.sanitizeUserSettings(Object.assign({}, persisted, dirty));
         savePersistedOverrides(persisted);
@@ -572,16 +608,31 @@
     });
 
     var params = new URLSearchParams(location.search);
-    if (params.get("data")) {
-      $("data-url").value = params.get("data");
-      $("data-url-load").click();
-    }
-    if (params.get("config")) {
-      $("config-url").value = params.get("config");
-      $("config-url-load").click();
-    }
+    var dataParam = params.get("data");
+    var configParam = params.get("config");
+    if (dataParam) $("data-url").value = dataParam;
+    if (configParam) $("config-url").value = configParam;
 
-    if (!params.get("data") && !params.get("config")) {
+    if (dataParam || configParam) {
+      // Sequenced deliberately: the configuration decides how the data is
+      // read, and a single render at the end beats two racing each other.
+      var chain = Promise.resolve(true);
+      if (configParam) {
+        chain = chain.then(function () {
+          // A missing configuration is survivable - defaults still render.
+          return fetchInto(configParam, "config-input", function (url) { configBaseIRI = url; })
+            .then(function () { return true; }, function () { return true; });
+        });
+      }
+      if (dataParam) {
+        chain = chain.then(function () {
+          // A missing data document is not: rendering anyway would silently
+          // fall back to the built-in sample and bury the fetch error.
+          return fetchInto(dataParam, "data-input").then(function () { return true; }, function () { return false; });
+        });
+      }
+      chain.then(function (ok) { if (ok) render(); });
+    } else {
       loadDeployConfig().then(function (dc) {
         $("config-input").value = dc.text;
         configBaseIRI = dc.baseIRI;

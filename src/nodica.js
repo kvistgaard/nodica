@@ -1,8 +1,8 @@
 /**
- * Nodica core library (v0.1)
+ * Nodica core library (v0.2)
  *
  * RDF graph visualisation with image-filled nodes.
- * See requirements.md for the full spec and decisions D1-D12.
+ * See decisions-log.md for the full spec and decisions D1-D20.
  *
  * Classic script (no build step): attaches `Nodica` to window/globalThis.
  * Dependencies (globals): N3 (parsing), vis (vis-network, only needed by GraphView).
@@ -21,6 +21,7 @@
     imageProperty: "https://schema.org/image",
     labelProperty: "http://www.w3.org/2000/01/rdf-schema#label",
     edgeLabelLanguage: "en",
+    imageMaxWidth: 400,
     nodeSize: 50,
     edgeLength: 200,
     edgeWidth: 4,
@@ -37,6 +38,7 @@
     imageProperty: "iri",
     labelProperty: "iri",
     edgeLabelLanguage: "string",
+    imageMaxWidth: "number",
     dataSource: "iri",
     fallback: "iri",
     settingsLocked: "boolean",
@@ -60,6 +62,79 @@
         '<text x="50" y="58" font-size="40" text-anchor="middle" fill="#888888">?</text>' +
         "</svg>"
     );
+
+  /**
+   * Size thresholds above which rendering options change (D20). Kept here,
+   * in the core, so the app and the YASR plugin cannot drift apart.
+   */
+  var LIMITS = {
+    /** Above this many nodes the force layout starts switched off (D9). */
+    maxPhysicsNodes: 1500,
+    /**
+     * vis-network's own `layout.clusterThreshold`. Its `improvedLayout`
+     * (Kamada-Kawai initial placement) is worth its cost below this size;
+     * above it, vis clusters the graph first, which is far slower than
+     * letting physics place the nodes from random positions.
+     */
+    maxImprovedLayoutNodes: 150,
+    /** Above this many edges, curved edges cost more per frame than they add. */
+    maxSmoothEdges: 500,
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* Image URLs                                                          */
+  /* ------------------------------------------------------------------ */
+
+  /**
+   * Hosts known to serve https only. An `http://` image URL for them costs a
+   * redirect per image before a single byte arrives, and RDF in the wild is
+   * full of them (Wikidata's own `wdt:P18` values are all `http://commons...`).
+   * Anchored at the scheme, and the optional sub-domain group cannot cross
+   * `/`, `?` or `#`, so it matches the host and nothing else.
+   */
+  var HTTPS_ONLY_IMAGE_HOSTS =
+    /^http:\/\/([^\/?#]*\.)?(wikimedia|wikipedia|wikidata|wikibooks|wikisource)\.org(?=[\/?#]|$)/i;
+
+  /** MediaWiki's redirect endpoint for a file's *original* upload. */
+  var FILE_PATH_RE = /\/Special:FilePath\//i;
+
+  /**
+   * Ask MediaWiki's thumbnailer for a scaled rendering instead of the original
+   * upload (D20). Originals are routinely 10-30 MB - a 30 MB TIFF in the
+   * bundled test graph becomes 33 KB at width=400 - and the browser must also
+   * decode every one of them at full resolution before shrinking it into a
+   * node a hundred pixels wide.
+   *
+   * Only `Special:FilePath` URLs are touched: that endpoint documents `width`,
+   * and appending a query parameter to an arbitrary image URL could break it.
+   * A URL that already carries a width is left alone (the author sized it).
+   * `width <= 0` disables the rewrite entirely.
+   */
+  function withThumbnailWidth(url, width) {
+    if (!(width > 0) || !FILE_PATH_RE.test(url)) return url;
+    var hash = "";
+    var hashAt = url.indexOf("#");
+    if (hashAt !== -1) {
+      hash = url.slice(hashAt);
+      url = url.slice(0, hashAt);
+    }
+    if (/[?&]width=/i.test(url)) return url + hash;
+    return url + (url.indexOf("?") === -1 ? "?" : "&") + "width=" + Math.round(width) + hash;
+  }
+
+  /**
+   * Everything that happens to an image URL between the RDF and the canvas:
+   * https upgrade (always for known https-only hosts, and for every host when
+   * `upgradeHttpImages` guards against mixed content on an https page, D9),
+   * then thumbnailing (`imageMaxWidth`, D20).
+   */
+  function normalizeImageUrl(url, settings) {
+    if (typeof url !== "string" || url === "") return url;
+    var s = settings || {};
+    if (HTTPS_ONLY_IMAGE_HOSTS.test(url)) url = "https://" + url.slice(7);
+    else if (s.upgradeHttpImages) url = url.replace(/^http:\/\//, "https://");
+    return withThumbnailWidth(url, s.imageMaxWidth);
+  }
 
   /* ------------------------------------------------------------------ */
   /* Parsing                                                             */
@@ -280,6 +355,7 @@
       "    cfg:imageProperty      <" + s.imageProperty + "> ;",
       "    cfg:labelProperty      <" + s.labelProperty + "> ;",
       '    cfg:edgeLabelLanguage  "' + s.edgeLabelLanguage + '" ;',
+      "    cfg:imageMaxWidth      " + s.imageMaxWidth + " ;",
       "    cfg:nodeSize           " + s.nodeSize + " ;",
       "    cfg:edgeLength         " + s.edgeLength + " ;",
       "    cfg:edgeWidth          " + s.edgeWidth + " ;",
@@ -397,9 +473,16 @@
     wdt: "http://www.wikidata.org/prop/direct/",
   };
 
-  /** Shorten a URI with the document's prefixes (well-known prefixes as
-   *  fallback), else use the fragment/last path segment. */
-  function shorten(iri, prefixes) {
+  /**
+   * Build a shortening function for one document: the merged prefix table and
+   * the results are computed once, not per URI. `buildModel` shortens once per
+   * node and once per edge, so rebuilding the table inside the loop made the
+   * cost of a graph quadratic in (prefixes x terms) for no benefit (D20).
+   *
+   * Returns f(iri) -> "prefix:local", else the fragment/last path segment.
+   */
+  function makeShortener(prefixes) {
+    var namespaces = [];
     var all = {};
     Object.keys(WELL_KNOWN_PREFIXES).forEach(function (p) {
       all[p] = WELL_KNOWN_PREFIXES[p];
@@ -409,18 +492,36 @@
       // N3 may hand back NamedNodes as prefix values
       all[p] = typeof ns === "string" ? ns : ns.value;
     });
-    var best = null;
-    var bestLen = -1;
     Object.keys(all).forEach(function (pfx) {
-      var nsVal = all[pfx];
-      if (iri.indexOf(nsVal) === 0 && nsVal.length > bestLen) {
-        best = pfx + ":" + iri.slice(nsVal.length);
-        bestLen = nsVal.length;
-      }
+      namespaces.push({ prefix: pfx, ns: all[pfx] });
     });
-    if (best !== null) return best;
-    var m = iri.match(/[#\/]([^#\/]*)$/);
-    return m && m[1] ? m[1] : iri;
+    // Null-prototype cache: URIs are arbitrary strings, and a plain object
+    // would report inherited members ("constructor") as cached entries.
+    var cache = Object.create(null);
+    return function (iri) {
+      var hit = cache[iri];
+      if (hit !== undefined) return hit;
+      var best = null;
+      var bestLen = -1;
+      for (var i = 0; i < namespaces.length; i++) {
+        var nsVal = namespaces[i].ns;
+        if (nsVal.length > bestLen && iri.indexOf(nsVal) === 0) {
+          best = namespaces[i].prefix + ":" + iri.slice(nsVal.length);
+          bestLen = nsVal.length;
+        }
+      }
+      if (best === null) {
+        var m = iri.match(/[#\/]([^#\/]*)$/);
+        best = m && m[1] ? m[1] : iri;
+      }
+      cache[iri] = best;
+      return best;
+    };
+  }
+
+  /** One-off shortening; prefer makeShortener() when shortening many URIs. */
+  function shorten(iri, prefixes) {
+    return makeShortener(prefixes)(iri);
   }
 
   /**
@@ -430,8 +531,8 @@
    *   they style the subject node and are not drawn as edges (D5).
    * - Multiple image/label values per node: first encountered wins (D6).
    * - Literal objects become leaf nodes (one node per occurrence).
-   * - Tooltips (titles) are HTML-escaped; with settings.upgradeHttpImages,
-   *   http:// image URLs are rewritten to https:// (D9).
+   * - Tooltips (titles) are HTML-escaped; image URLs go through
+   *   normalizeImageUrl (https upgrade D9, thumbnailing D20).
    * - Distinct predicates are aggregated with counts for the filter (D12).
    * - Edge/predicate-filter labels: a property's own rdfs:label (or
    *   whatever labelProperty is configured), in settings.edgeLabelLanguage
@@ -442,6 +543,7 @@
    */
   function buildModel(quads, settings, prefixes) {
     var s = mergeSettings(settings);
+    var shortenIri = makeShortener(prefixes);
     var images = {}; // subject id -> image URL (first wins)
     var labels = {}; // subject id -> label (first wins)
     var consumedSubjects = {}; // subject id -> term (so image-only subjects still get a node)
@@ -518,7 +620,7 @@
     function edgeLabel(predicateUri) {
       return propertyLabels[predicateUri] !== undefined
         ? propertyLabels[predicateUri]
-        : shorten(predicateUri, prefixes);
+        : shortenIri(predicateUri);
     }
 
     // Pass 2: build nodes and edges.
@@ -530,7 +632,7 @@
       var id = termId(term);
       if (nodes[id]) return id;
       var isBlank = term.termType === "BlankNode";
-      var label = labels[id] !== undefined ? labels[id] : isBlank ? id : shorten(term.value, prefixes);
+      var label = labels[id] !== undefined ? labels[id] : isBlank ? id : shortenIri(term.value);
       var node = {
         id: id,
         label: label,
@@ -538,11 +640,9 @@
         shape: "dot",
       };
       if (images[id] !== undefined) {
-        var imageUrl = images[id];
-        // Avoid mixed-content blocking when the app is served over https.
-        if (s.upgradeHttpImages) imageUrl = imageUrl.replace(/^http:\/\//, "https://");
         node.shape = "circularImage";
-        node.image = imageUrl;
+        // https upgrade + thumbnailing; see normalizeImageUrl (D9, D20).
+        node.image = normalizeImageUrl(images[id], s);
         node.brokenImage = BROKEN_IMAGE;
       }
       nodes[id] = node;
@@ -650,10 +750,26 @@
   /* Rendering                                                           */
   /* ------------------------------------------------------------------ */
 
-  /** Map effective settings to vis-network options (single source of truth). */
-  function toVisOptions(settings) {
+  /**
+   * Map effective settings to vis-network options (single source of truth).
+   *
+   * `hints` carries the model's size ({ nodeCount, edgeCount }) because three
+   * vis options should follow the graph rather than the configuration (D20):
+   * the Kamada-Kawai pre-layout, curved edges, and - via applyPerformanceGuards
+   * - physics itself. Called without hints, nothing scales and the small-graph
+   * options apply.
+   */
+  function toVisOptions(settings, hints) {
     var s = mergeSettings(settings);
+    var h = hints || {};
+    var nodeCount = typeof h.nodeCount === "number" ? h.nodeCount : 0;
+    var edgeCount = typeof h.edgeCount === "number" ? h.edgeCount : 0;
     return {
+      layout: {
+        // Above vis-network's own clusterThreshold this pre-layout clusters
+        // the graph first, which costs far more than it saves.
+        improvedLayout: nodeCount <= LIMITS.maxImprovedLayoutNodes,
+      },
       nodes: {
         size: s.nodeSize,
         borderWidth: 2,
@@ -670,7 +786,7 @@
         width: s.edgeWidth,
         color: { color: s.edgeColor, highlight: s.edgeColor },
         font: { size: s.edgeLabelFontSize, align: "middle", strokeWidth: 0, background: "#ffffff" },
-        smooth: { enabled: true, type: "continuous", roundness: 0.5 },
+        smooth: { enabled: edgeCount <= LIMITS.maxSmoothEdges, type: "continuous", roundness: 0.5 },
       },
       physics: {
         enabled: !!s.physicsEnabled,
@@ -682,11 +798,55 @@
           damping: 0.09,
           avoidOverlap: 0.1,
         },
-        stabilization: { enabled: true, iterations: 200, updateInterval: 10, fit: true },
+        stabilization: {
+          // Internal (not a cfg: term): a redraw that restores known node
+          // positions has nothing to stabilise and should appear at once.
+          enabled: s.stabilizationEnabled !== false,
+          iterations: 200,
+          updateInterval: 10,
+          fit: true,
+        },
         minVelocity: 0.75,
       },
       interaction: { hover: true, tooltipDelay: 150 },
     };
+  }
+
+  /**
+   * Large-graph guards (D9, D20), shared by the app and the YASR plugin so the
+   * two cannot drift apart. Returns fresh settings plus a note for the user
+   * ("" when nothing was changed) - it never mutates its argument.
+   */
+  function applyPerformanceGuards(settings, model) {
+    var s = mergeSettings(settings);
+    var nodeCount = model && model.nodes ? model.nodes.length : 0;
+    var note = "";
+    if (nodeCount > LIMITS.maxPhysicsNodes && s.physicsEnabled) {
+      s.physicsEnabled = false;
+      note =
+        "Large graph (" + nodeCount + " nodes): physics switched off to keep " +
+        "the page responsive. Re-enable it via the Physics checkbox if needed.";
+    }
+    return { settings: s, note: note };
+  }
+
+  /**
+   * Copy previously captured positions (GraphView#getPositions) onto a model's
+   * nodes, so a redraw of the same data resumes the layout the user was
+   * looking at instead of scattering it (D20). Returns how many were applied.
+   */
+  function applyPositions(model, positions) {
+    if (!model || !model.nodes || !positions) return 0;
+    var applied = 0;
+    model.nodes.forEach(function (node) {
+      var p = positions[node.id];
+      if (p && typeof p.x === "number" && typeof p.y === "number") {
+        node.x = p.x;
+        node.y = p.y;
+        applied++;
+      }
+    });
+    return applied;
   }
 
   /**
@@ -699,14 +859,30 @@
     this.settings = mergeSettings(settings);
     this.nodes = new vis.DataSet(model.nodes);
     this.edges = new vis.DataSet(model.edges);
+    // Size-dependent rendering options follow the model, not the config (D20).
+    this._hints = { nodeCount: model.nodes.length, edgeCount: model.edges.length };
     this.network = new vis.Network(
       container,
       { nodes: this.nodes, edges: this.edges },
-      toVisOptions(this.settings)
+      toVisOptions(this.settings, this._hints)
     );
     this._handlers = {};
 
     var self = this;
+
+    // Stabilisation happens behind a blank canvas, so on a graph large enough
+    // to take a moment the host needs to be able to say so (D20).
+    this.network.on("stabilizationProgress", function (params) {
+      var total = params && params.total ? params.total : 0;
+      self._emit("stabilizationProgress", {
+        iterations: params ? params.iterations : 0,
+        total: total,
+        percent: total ? Math.round((params.iterations / total) * 100) : 0,
+      });
+    });
+    this.network.on("stabilizationIterationsDone", function () {
+      self._emit("stabilized", {});
+    });
 
     // Manual rearrangement: a dragged node stays where the user puts it.
     this.network.on("dragEnd", function (params) {
@@ -774,7 +950,8 @@
     });
   };
 
-  /** Subscribe to 'nodeClick' | 'nodeDoubleClick' | 'edgeClick'. */
+  /** Subscribe to 'nodeClick' | 'nodeDoubleClick' | 'edgeClick' |
+   *  'stabilizationProgress' | 'stabilized'. */
   GraphView.prototype.on = function (event, cb) {
     (this._handlers[event] = this._handlers[event] || []).push(cb);
     return this;
@@ -783,8 +960,18 @@
   /** Live-apply changed settings (UI overrides). */
   GraphView.prototype.updateSettings = function (partial) {
     this.settings = mergeSettings(this.settings, partial);
-    this.network.setOptions(toVisOptions(this.settings));
+    this.network.setOptions(toVisOptions(this.settings, this._hints));
     this._syncThemeColors();
+  };
+
+  /** Current node positions, keyed by node id - hand back to applyPositions()
+   *  to resume this layout on a later redraw of the same data (D20). */
+  GraphView.prototype.getPositions = function () {
+    try {
+      return this.network.getPositions();
+    } catch (e) {
+      return {};
+    }
   };
 
   /** Fix (freeze) or release the force layout. */
@@ -828,10 +1015,11 @@
   /* ------------------------------------------------------------------ */
 
   root.Nodica = {
-    VERSION: "0.1.0",
+    VERSION: "0.2.0",
     CFG_NS: CFG_NS,
     DEFAULTS: DEFAULTS,
     CONFIG_TERMS: CONFIG_TERMS,
+    LIMITS: LIMITS,
     parseRdf: parseRdf,
     parseConfig: parseConfig,
     mergeSettings: mergeSettings,
@@ -842,9 +1030,12 @@
     configToTurtle: configToTurtle,
     detectImageProperty: detectImageProperty,
     resolveEntityUrl: resolveEntityUrl,
+    normalizeImageUrl: normalizeImageUrl,
     buildModel: buildModel,
     computeVisibility: computeVisibility,
     toVisOptions: toVisOptions,
+    applyPerformanceGuards: applyPerformanceGuards,
+    applyPositions: applyPositions,
     GraphView: GraphView,
   };
 })(typeof window !== "undefined" ? window : globalThis);

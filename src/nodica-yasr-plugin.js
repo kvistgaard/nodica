@@ -51,9 +51,6 @@
     "text/plain",
   ];
 
-  /** Same guard as app.js: physics off above this size to stay responsive. */
-  var MAX_PHYSICS_NODES = 1500;
-
   /** The Nodica core is resolved lazily so script order only matters at
    *  draw time, not at load time. */
   function lib() {
@@ -88,6 +85,14 @@
     this._model = null;
     this._propItemsEl = null;
     this._physicsBtn = null;
+    this._statusEl = null;
+    // Redrawing the same response (switching YASR tabs back and forth) should
+    // not re-parse it or scatter the layout the user arranged (D20).
+    this._cacheKey = null;
+    this._cached = null;
+    this._positions = null;
+    // Serialises overlapping draws, the same way app.js's renderSeq does (D9).
+    this._drawSeq = 0;
     this.hiddenPredicates = {};
   }
 
@@ -125,6 +130,8 @@
       ".nodica-yasr-props-actions { display: flex; gap: 12px; margin-bottom: 6px; }",
       ".nodica-yasr-linklike { background: none; border: none; color: var(--nodica-link, #0066cc); cursor: pointer; font-size: 12px; padding: 0; font-family: inherit; }",
       ".nodica-yasr-linklike:hover { text-decoration: underline; }",
+      ".nodica-yasr-status { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 7; padding: 4px 12px; border-radius: 12px; font-size: 12px; background: var(--nodica-label-background, #fff); color: var(--nodica-label-color, #222); border: 1px solid rgba(128,128,128,0.35); box-shadow: 0 2px 6px rgba(0,0,0,0.15); pointer-events: none; }",
+      ".nodica-yasr-status[hidden] { display: none; }",
     ].join("\n");
     document.head.appendChild(style);
   };
@@ -232,6 +239,10 @@
 
   NodicaPlugin.prototype._teardown = function () {
     if (this.view) {
+      // Remember where the user left the graph: YASR calls draw() again on
+      // every view switch, and re-running the layout would throw away an
+      // arrangement they may have spent time on (D20).
+      try { this._positions = this.view.getPositions(); } catch (e) { /* keep the old set */ }
       try { this.view.destroy(); } catch (e) { /* already gone */ }
       this.view = null;
     }
@@ -241,6 +252,15 @@
     this.container = null;
     this._propItemsEl = null;
     this._physicsBtn = null;
+    this._statusEl = null;
+  };
+
+  /** Transient overlay line ("" hides it) - the graph is invisible while
+   *  vis-network stabilises, so the wait needs a caption. */
+  NodicaPlugin.prototype._setStatus = function (text) {
+    if (!this._statusEl) return;
+    this._statusEl.textContent = text || "";
+    this._statusEl.hidden = !text;
   };
 
   /** Property filter (D12), mirroring app.js's renderPropertyPanel(). */
@@ -361,11 +381,17 @@
     controls.appendChild(unpinBtn);
     controls.appendChild(fitBtn);
 
+    var statusEl = document.createElement("div");
+    statusEl.className = "nodica-yasr-status";
+    statusEl.hidden = true;
+    this._statusEl = statusEl;
+
     var canvasEl = document.createElement("div");
     canvasEl.className = "nodica-yasr-canvas";
 
     this.container.appendChild(propPanel);
     this.container.appendChild(controls);
+    this.container.appendChild(statusEl);
     this.container.appendChild(canvasEl);
     return canvasEl;
   };
@@ -374,6 +400,15 @@
     var self = this;
     var N = lib();
     var raw = this._raw();
+
+    // YASR can call draw() again before the previous one has finished (it does
+    // exactly that when it restores a persisted response and then activates the
+    // tab). Everything below the first `await` writes into this.container, so
+    // without a token two overlapping draws build their chrome into the *same*
+    // container - two Properties panels, two control bars - and the earlier
+    // GraphView is never destroyed. Stale draws bail out instead.
+    var token = ++this._drawSeq;
+    var isStale = function () { return token !== self._drawSeq; };
 
     this._teardown();
     var container = document.createElement("div");
@@ -391,21 +426,48 @@
 
     return this._resolveSettings()
       .then(function (settings) {
-        return N.parseRdf(raw).then(function (parsed) {
-          var effective = N.mergeSettings(settings);
+        if (isStale()) return;
+        // YASR keeps one plugin instance per tab and calls draw() on every
+        // view switch. Re-parsing and re-building an unchanged response is
+        // pure waste, so the built model is cached against the raw text (D20).
+        var prepared;
+        if (self._cacheKey === raw && self._cached) {
+          prepared = Promise.resolve(self._cached);
+        } else {
+          prepared = N.parseRdf(raw).then(function (parsed) {
+            var built = N.mergeSettings(settings);
 
-          // D6: fall back to an auto-detected image property when the
-          // configured one matches nothing in this result.
-          var det = N.detectImageProperty(parsed.quads, effective.imageProperty);
-          if (det.detected) effective.imageProperty = det.property;
+            // D6: fall back to an auto-detected image property when the
+            // configured one matches nothing in this result.
+            var det = N.detectImageProperty(parsed.quads, built.imageProperty);
+            if (det.detected) built.imageProperty = det.property;
 
-          var model = N.buildModel(parsed.quads, effective, parsed.prefixes);
+            var newModel = N.buildModel(parsed.quads, built, parsed.prefixes);
+            var entry = {
+              model: newModel,
+              settings: N.applyPerformanceGuards(built, newModel).settings,
+            };
+            self._cacheKey = raw;
+            self._cached = entry;
+            self._positions = null; // different data: no layout to resume
+            return entry;
+          });
+        }
+
+        return prepared.then(function (entry) {
+          if (isStale()) return;
+          var model = entry.model;
+          var effective = N.mergeSettings(entry.settings);
+
           if (model.nodes.length === 0) {
             self._message("The query returned no triples to draw.\nNodica renders CONSTRUCT and DESCRIBE results.");
             return;
           }
-          if (model.nodes.length > MAX_PHYSICS_NODES && effective.physicsEnabled) {
-            effective.physicsEnabled = false;
+
+          // Same data as last time: put every node back where it was and skip
+          // stabilisation, so switching views is instant instead of a reshuffle.
+          if (self._positions && N.applyPositions(model, self._positions) > 0) {
+            effective.stabilizationEnabled = false;
           }
 
           self._model = model;
@@ -422,6 +484,11 @@
           self._physicsBtn.textContent = effective.physicsEnabled ? "Fix layout" : "Release layout";
           self._renderPropertyPanel();
           if (Object.keys(self.hiddenPredicates).length > 0) self._applyPredicateFilter();
+
+          self.view.on("stabilizationProgress", function (p) {
+            self._setStatus("Laying out " + model.nodes.length + " nodes... " + p.percent + "%");
+          });
+          self.view.on("stabilized", function () { self._setStatus(""); });
 
           // Same click discipline as app.js: single click (280 ms, not part
           // of a double click) opens the entity via resolveEntityUrl (D11).
@@ -442,6 +509,7 @@
         });
       })
       .catch(function (err) {
+        if (isStale()) return;
         self._message(
           "Could not render this result as a graph: " +
           (err && err.message ? err.message : String(err)) +
@@ -485,6 +553,9 @@
 
   NodicaPlugin.prototype.destroy = function () {
     this._teardown();
+    this._cacheKey = null;
+    this._cached = null;
+    this._positions = null;
   };
 
   /** Register with whatever Yasr class is reachable; safe to call again. */

@@ -188,11 +188,20 @@ function read(rel) {
     check("no wdt:P18 edges drawn", p18Edges.length === 0, p18Edges.length);
     const imageNodes = uModel.nodes.filter((n) => n.shape === "circularImage");
     check("every resolved image fills a node", imageNodes.length === uModel.stats.imagesResolved, imageNodes.length);
-    // D6: Q133028 has two P18 values - the first must win
+    // D6: Q133028 has two P18 values - the first must win. D20: the URL is
+    // then https-upgraded and thumbnailed on the way to the node.
     const richard = uModel.nodes.find((n) => n.id === "http://www.wikidata.org/entity/Q133028");
-    check("first image wins for Q133028",
-      richard && richard.image === "http://commons.wikimedia.org/wiki/Special:FilePath/King%20Richard%20III%20from%20NPG.jpg",
+    check("first image wins for Q133028 (https + thumbnailed, D20)",
+      richard && richard.image === "https://commons.wikimedia.org/wiki/Special:FilePath/King%20Richard%20III%20from%20NPG.jpg?width=400",
       richard && richard.image);
+    const unthumbed = IG.buildModel(u.quads, IG.mergeSettings({ imageProperty: detU.property, imageMaxWidth: 0 }), u.prefixes)
+      .nodes.filter((n) => n.image && n.image.indexOf("?width=") !== -1);
+    check("imageMaxWidth 0 loads originals", unthumbed.length === 0, unthumbed.length);
+    const thumbed = uModel.nodes.filter((n) => n.image && n.image.indexOf("?width=400") !== -1);
+    check("every Commons image thumbnailed by default",
+      thumbed.length === uModel.stats.imagesResolved, thumbed.length + "/" + uModel.stats.imagesResolved);
+    const insecure = uModel.nodes.filter((n) => n.image && n.image.indexOf("http://") === 0);
+    check("no http:// image URLs left (saves a redirect each)", insecure.length === 0, insecure.length);
     const hasUncleEdges = uModel.edges.filter((e) => e.predicate === "https://example.org/rel/hasUncle");
     check("hasUncle edges present", hasUncleEdges.length > 100, hasUncleEdges.length);
   }
@@ -350,6 +359,103 @@ function read(rel) {
   check("literal tooltip escaped", xssLit && xssLit.title.indexOf("<img") === -1 && xssLit.title.indexOf("&lt;img") === 0, xssLit && xssLit.title);
   const xssSubj = xssModel.nodes.find((n) => n.id === "http://x.org/a");
   check("plain URI tooltip unchanged", xssSubj && xssSubj.title === "http://x.org/a", xssSubj && xssSubj.title);
+
+  /* ---- image URL normalisation (D20) ------------------------------------ */
+  console.log("image URLs: https upgrade + thumbnailing (D20)");
+  const N400 = { imageMaxWidth: 400 };
+  check("Special:FilePath gets a width",
+    IG.normalizeImageUrl("https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg", N400) ===
+      "https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg?width=400",
+    IG.normalizeImageUrl("https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg", N400));
+  check("an existing width is respected",
+    IG.normalizeImageUrl("https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg?width=200", N400) ===
+      "https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg?width=200",
+    IG.normalizeImageUrl("https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg?width=200", N400));
+  check("an existing query is preserved",
+    IG.normalizeImageUrl("https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg?x=1", N400) ===
+      "https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg?x=1&width=400",
+    IG.normalizeImageUrl("https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg?x=1", N400));
+  check("a fragment stays at the end",
+    IG.normalizeImageUrl("https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg#f", N400) ===
+      "https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg?width=400#f",
+    IG.normalizeImageUrl("https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg#f", N400));
+  check("non-FilePath URLs are never rewritten",
+    IG.normalizeImageUrl("https://example.org/a.jpg", N400) === "https://example.org/a.jpg",
+    IG.normalizeImageUrl("https://example.org/a.jpg", N400));
+  check("imageMaxWidth 0 disables thumbnailing",
+    IG.normalizeImageUrl("https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg", { imageMaxWidth: 0 }) ===
+      "https://commons.wikimedia.org/wiki/Special:FilePath/A.jpg");
+  check("wikimedia http upgraded even on an http page",
+    IG.normalizeImageUrl("http://commons.wikimedia.org/x.jpg", {}) === "https://commons.wikimedia.org/x.jpg",
+    IG.normalizeImageUrl("http://commons.wikimedia.org/x.jpg", {}));
+  check("other hosts left alone unless upgradeHttpImages",
+    IG.normalizeImageUrl("http://example.org/a.jpg", {}) === "http://example.org/a.jpg");
+  check("look-alike host not upgraded",
+    IG.normalizeImageUrl("http://notwikimedia.org/a.jpg", {}) === "http://notwikimedia.org/a.jpg",
+    IG.normalizeImageUrl("http://notwikimedia.org/a.jpg", {}));
+  check("host match cannot be faked from a path",
+    IG.normalizeImageUrl("http://evil.example/?x=wikimedia.org/a.jpg", {}) === "http://evil.example/?x=wikimedia.org/a.jpg",
+    IG.normalizeImageUrl("http://evil.example/?x=wikimedia.org/a.jpg", {}));
+  check("imageMaxWidth default is 400", IG.DEFAULTS.imageMaxWidth === 400, IG.DEFAULTS.imageMaxWidth);
+  const imwRound = await IG.parseConfig(IG.configToTurtle(IG.mergeSettings({ imageMaxWidth: 250 })));
+  check("imageMaxWidth round-trips through configToTurtle", imwRound.imageMaxWidth === 250, imwRound.imageMaxWidth);
+  check("imageMaxWidth is user-settable (not operator-only)",
+    IG.sanitizeUserSettings({ imageMaxWidth: 300 }).imageMaxWidth === 300);
+  const vocabHasImw = vocab.quads.some((q) => q.subject.value === IG.CFG_NS + "imageMaxWidth");
+  check("ontology defines cfg:imageMaxWidth", vocabHasImw);
+  const deployImw = await IG.parseConfig(read("settings.ttl"), { baseIRI: "http://host/settings.ttl" });
+  check("settings.ttl sets imageMaxWidth", deployImw.imageMaxWidth === 400, deployImw.imageMaxWidth);
+
+  // CLAUDE.md invariant 2: app.js's embedded copy (used on file:// pages,
+  // where settings.ttl cannot be fetched) must produce the same settings as
+  // the file itself. Compared after parsing, so formatting may differ freely.
+  const appSrc = read("src/app.js");
+  const dcStart = appSrc.indexOf("var DEFAULT_CONFIG = [");
+  const dcEnd = appSrc.indexOf("].join('\\n');", dcStart);
+  check("DEFAULT_CONFIG is findable in app.js", dcStart !== -1 && dcEnd !== -1);
+  const embeddedConfig = appSrc
+    .slice(appSrc.indexOf("[", dcStart) + 1, dcEnd)
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l !== "")
+    .map((l) => l.replace(/,$/, "").replace(/^'/, "").replace(/'$/, ""))
+    .join("\n");
+  const embeddedSettings = await IG.parseConfig(embeddedConfig, { baseIRI: "http://host/settings.ttl" });
+  const asKeyValues = (o) => JSON.stringify(Object.keys(o).sort().map((k) => [k, o[k]]));
+  check("DEFAULT_CONFIG in app.js stays in sync with settings.ttl",
+    asKeyValues(embeddedSettings) === asKeyValues(deployImw),
+    { embedded: asKeyValues(embeddedSettings), file: asKeyValues(deployImw) });
+
+  /* ---- size-dependent render options (D20) ------------------------------ */
+  console.log("size-dependent vis options (D20)");
+  const small = IG.toVisOptions(IG.mergeSettings(), { nodeCount: 50, edgeCount: 40 });
+  const big = IG.toVisOptions(IG.mergeSettings(), { nodeCount: 900, edgeCount: 900 });
+  check("small graph keeps the Kamada-Kawai pre-layout", small.layout.improvedLayout === true);
+  check("large graph drops it (vis clusters above 150 nodes)", big.layout.improvedLayout === false);
+  check("threshold is vis-network's own clusterThreshold",
+    IG.LIMITS.maxImprovedLayoutNodes === 150, IG.LIMITS.maxImprovedLayoutNodes);
+  check("few edges stay curved", small.edges.smooth.enabled === true);
+  check("many edges go straight", big.edges.smooth.enabled === false);
+  check("stabilisation on by default", small.physics.stabilization.enabled === true);
+  check("stabilisation skippable for a restored layout",
+    IG.toVisOptions(IG.mergeSettings({ stabilizationEnabled: false })).physics.stabilization.enabled === false);
+  check("no hints: small-graph options apply", IG.toVisOptions(IG.mergeSettings()).layout.improvedLayout === true);
+
+  console.log("performance guards + layout restore (D20)");
+  const guardSmall = IG.applyPerformanceGuards(IG.mergeSettings(), { nodes: new Array(10) });
+  check("small graph keeps physics", guardSmall.settings.physicsEnabled === true && guardSmall.note === "", guardSmall);
+  const guardBig = IG.applyPerformanceGuards(IG.mergeSettings(), { nodes: new Array(2000) });
+  check("physics off above the node limit", guardBig.settings.physicsEnabled === false, guardBig.settings.physicsEnabled);
+  check("and it says so", guardBig.note.indexOf("2000 nodes") !== -1, guardBig.note);
+  const guardInput = IG.mergeSettings();
+  IG.applyPerformanceGuards(guardInput, { nodes: new Array(2000) });
+  check("guards never mutate their argument", guardInput.physicsEnabled === true, guardInput.physicsEnabled);
+  const posModel = { nodes: [{ id: "a" }, { id: "b" }, { id: "c" }] };
+  const posApplied = IG.applyPositions(posModel, { a: { x: 1, y: 2 }, b: { x: -3, y: 4 }, zz: { x: 9, y: 9 } });
+  check("positions restored for known nodes", posApplied === 2, posApplied);
+  check("coordinates copied", posModel.nodes[0].x === 1 && posModel.nodes[1].y === 4, posModel.nodes);
+  check("unknown nodes untouched", posModel.nodes[2].x === undefined, posModel.nodes[2]);
+  check("no positions is a no-op", IG.applyPositions(posModel, null) === 0);
 
   console.log("http->https image upgrade (mixed content, D9)");
   const mixed = await IG.parseRdf(

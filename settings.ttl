@@ -27,6 +27,9 @@
     cfg:dereferenceRule    [ cfg:uriPrefix "http://www.wikidata.org/entity/" ;
                              cfg:template  "https://www.wikidata.org/wiki/{LOCAL}" ] ;
     cfg:imageProperty      wdt:P18 ;
+    # Commons serves the original upload (often 10-30 MB) unless a width
+    # is requested; 400 px is ample for a node. 0 loads originals (D20).
+    cfg:imageMaxWidth      400 ;
     cfg:nodeSize           50 ;
     cfg:edgeLength         200 ;
     cfg:edgeWidth          4 ;

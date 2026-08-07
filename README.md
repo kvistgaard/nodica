@@ -51,6 +51,7 @@ Paste or load any such file in the Configuration panel, adjust settings interact
 | `cfg:imageProperty`                                                       | RDF property whose value fills each node with an image                                    |
 | `cfg:labelProperty`                                                       | RDF property supplying the node label (default `rdfs:label`)                              |
 | `cfg:edgeLabelLanguage`                                                   | Preferred language for edge/property labels (default `"en"`) — see below                  |
+| `cfg:imageMaxWidth`                                                       | Width requested for Wikimedia Commons images (default `400`; `0` loads originals) — see below |
 | `cfg:dataSource`                                                          | RDF file to preload at startup — relative IRI resolved against the config (operator-only) |
 | `cfg:fallback`                                                            | `cfg:Sample` or `cfg:Empty` when the data source is unavailable (operator-only)           |
 | `cfg:settingsLocked`                                                      | Hide the settings panel and ignore user overrides (operator-only)                         |
@@ -61,6 +62,8 @@ Paste or load any such file in the Configuration panel, adjust settings interact
 | `cfg:physicsEnabled`                                                      | Force layout active on load                                                               |
 
 **Edges use the property's own label, if the data has one.** If the loaded RDF also states a label for a predicate itself — e.g. `<http://example.org/hasParent> rdfs:label "father"@en .` — edges (and the matching entry in the Properties filter) show "father" instead of the shortened URI `ex:hasParent`. When a property has labels in more than one language, `cfg:edgeLabelLanguage` picks which one wins (falling back to any other available language, then to the URI, if nothing matches). A predicate-only URI's label triple doesn't add a floating node to the graph — only real resources do.
+
+**Images are thumbnailed, not downloaded whole.** A Wikimedia Commons URL of the form `.../Special:FilePath/Some%20File.jpg` serves the *original upload*, which is routinely 10–30 MB — one image in the bundled demo data is a 30 MB TIFF. Nodica appends `?width=` (from `cfg:imageMaxWidth`, default 400 px, ample for a node) so Commons returns a scaled rendering instead: on the demo dataset that is the difference between 142 seconds and 3 seconds until every node is filled. Only `Special:FilePath` URLs are rewritten, and never one that already specifies a width. Set `cfg:imageMaxWidth 0` to load originals.
 
 ---
 
@@ -120,6 +123,8 @@ The plugin follows the host's theme: style its `.nodica-yasr` container and defi
 Push to `main`, enable GitHub Pages from the repo root, and the app is live at `https://<user>.github.io/<repo>/`. No build step.
 
 To point the app at a different dataset: edit `cfg:dataSource` and the dereference rules in `settings.ttl` and commit.
+
+Release history is in [`CHANGELOG.md`](CHANGELOG.md); the reasoning behind every design decision is in [`decisions-log.md`](decisions-log.md).
 
 ---
 
