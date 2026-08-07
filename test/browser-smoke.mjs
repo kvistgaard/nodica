@@ -384,6 +384,80 @@ for (const theme of ['light', 'dark']) {
   }
 }
 
+/* -------------------------------------------------------------------------
+ * The README's "works in any YASGUI deployment" claim.
+ *
+ * Every scenario above runs against index.html, which sets pluginOrder and
+ * defaultPlugin, aliases the plugin's CSS variables, patches the icon font and
+ * supplies flex layout rules - so passing there says nothing about a bare
+ * third-party page. test/embed-fixture.html contains ONLY what the README
+ * tells a third party to write. Checking it caught a real omission: without
+ * `defaultPlugin`, YASR lands on Table and the graph is never drawn.
+ * ---------------------------------------------------------------------- */
+{
+  const scenario = 'bare YASGUI embed (README snippet)'
+  console.log(`\n${scenario}`)
+  const ctx = await browser.newContext({ locale: 'en-US', viewport: { width: 1400, height: 900 } })
+  const page = await ctx.newPage()
+  const errors = []
+  page.on('pageerror', (e) => errors.push(String(e).slice(0, 160)))
+  page.on('console', (msg) => {
+    const t = msg.text()
+    // The 404ing icon font is an upstream YASGUI packaging bug (D16), patched
+    // in our own pages but not in a bare one - not this plugin's failure.
+    if (msg.type() === 'error' && !/woff2|Failed to load resource/.test(t)) errors.push(t.slice(0, 160))
+  })
+  await stubEndpoint(page)
+  try {
+    await page.goto(URL.replace(/\/[^/]*$/, '/') + 'test/embed-fixture.html', { waitUntil: 'domcontentloaded' })
+    await page.waitForSelector('.nodica-yasr-canvas', { timeout: 30000 })
+  } catch { /* handled by the assertions below */ }
+  await page.waitForTimeout(2500)
+
+  const m = await page.evaluate(() => {
+    const visible = (e) => {
+      if (!e) return false
+      const r = e.getBoundingClientRect()
+      if (r.width < 5 || r.height < 5) return false
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
+      return !!hit && (hit === e || e.contains(hit) || hit.contains(e))
+    }
+    const sel = document.querySelector('.yasr_btnGroup button.selected')
+    const graph = document.querySelector('.nodica-yasr')
+    const ctrls = Array.from(document.querySelectorAll('.nodica-yasr-controls button'))
+    return {
+      selectedTab: sel ? sel.textContent.trim() : null,
+      graphHeight: graph ? Math.round(graph.getBoundingClientRect().height) : null,
+      canvasDrawn: !!document.querySelector('.nodica-yasr-canvas canvas'),
+      propsVisible: visible(document.querySelector('.nodica-yasr-props-toggle')),
+      controls: ctrls.map((b) => b.textContent.trim()),
+      controlBg: ctrls.length ? getComputedStyle(ctrls[0]).backgroundColor : null,
+      stylesInjected: !!document.getElementById('nodica-yasr-plugin-styles'),
+    }
+  })
+
+  const t1 = `${scenario}: Nodica is the view you land on`
+  if (m.selectedTab === 'Nodica') pass(t1)
+  else fail(t1, `selected tab is ${JSON.stringify(m.selectedTab)} - is defaultPlugin still in the README snippet?`)
+
+  const t2 = `${scenario}: the graph renders`
+  if (m.canvasDrawn && m.graphHeight > 100) pass(t2)
+  else fail(t2, `canvas=${m.canvasDrawn}, height=${m.graphHeight}`)
+
+  const t3 = `${scenario}: chrome works without any host CSS`
+  const missing = ['Unpin all', 'Fit'].filter((w) => !m.controls.includes(w))
+  if (!m.stylesInjected) fail(t3, 'the plugin did not inject its own stylesheet')
+  else if (!m.propsVisible) fail(t3, 'Properties toggle not visible')
+  else if (missing.length) fail(t3, `controls missing: ${missing.join(', ')} (have ${JSON.stringify(m.controls)})`)
+  else if (m.controlBg !== 'rgb(51, 122, 183)') fail(t3, `control colour fell back to ${m.controlBg}, expected the built-in blue`)
+  else pass(t3)
+
+  if (errors.length) fail(`${scenario}: no console errors`, errors.join(' | '))
+  else pass(`${scenario}: no console errors`)
+
+  await ctx.close()
+}
+
 await browser.close()
 console.log(`\n${checks} passed, ${failures} failed`)
 process.exit(failures ? 1 : 0)

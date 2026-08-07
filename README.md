@@ -83,11 +83,15 @@ Paste or load any such file in the Configuration panel, adjust settings interact
 
 **[SPARQL mode →](https://kvistgaard.github.io/nodica)** – `index.html` embeds the [Matdata YASGUI](https://github.com/Matdata-eu/Yasgui) SPARQL editor with Nodica registered as a results view. Run any `CONSTRUCT` or `DESCRIBE` query against any CORS-enabled endpoint and the returned RDF renders as an image-filled graph; `SELECT`/`ASK` results stay with YASGUI's table and response views. It opens on a Wikidata query of who influenced whom among people born 1590–1750 (`examples/influences.rq`).
 
-The rendered graph has the same controls as file mode – Properties filter (top-left) and Fix layout/Release layout, Unpin all, Fit (top-right) – built by the plugin itself, so they work in any YASGUI deployment, not just this page.
+The rendered graph has the same controls as file mode – Properties filter (top-left) and Fix layout/Release layout, Unpin all, Fit (top-right) – built by the plugin itself, so they work in any YASGUI deployment.
 
 Nodica also works in **any YASGUI deployment**: load `src/nodica.js` and `src/nodica-yasr-plugin.js` (plus N3.js and vis-network) after `yasgui.min.js` – the plugin self-registers as `nodica`. Configure it via the standard YASGUI config object:
 
 ```js
+// Without this, YASR lands on Table and Nodica is only reached by clicking
+// its result tab – the plugin registers either way, but isn't the default.
+Yasgui.Yasr.defaults.defaultPlugin = "nodica";
+
 Yasgui.Yasr.defaults.plugins.nodica = {
   enabled: true,
   dynamicConfig: {
@@ -97,6 +101,8 @@ Yasgui.Yasr.defaults.plugins.nodica = {
   }
 };
 ```
+
+This is verified, not assumed: `test/embed-fixture.html` is a bare YASGUI page containing only the above, and `npm run test:browser` loads it and asserts the graph, Properties filter and controls all render – with no host CSS, since the plugin injects its own. Two things a bare deployment doesn't inherit from this repo's pages: `assets/theme.css` (so the controls fall back to their built-in colours, which match YASGUI's Run button anyway), and the `@font-face` patch for [an upstream YASGUI packaging bug](https://github.com/Matdata-eu/Yasgui) whose icon font 404s – copy that rule from `index.html` if blank toolbar icons bother you.
 
 The plugin follows the host's theme via CSS custom properties on `.nodica-yasr` – all optional, each with a sensible default (e.g. `--nodica-accent-bg`/`--nodica-accent-hover` default to `#337ab7`/`#2868a0`, matching YASGUI's Run button):
 

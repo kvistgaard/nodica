@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nodica in a bare YASGUI deployment</title>
+  <!--
+    Deliberately minimal: this page contains ONLY what the README tells a
+    third party to do, so that the "works in any YASGUI deployment" claim is
+    verified rather than asserted. If you add page CSS, a pluginOrder, a
+    defaultPlugin, or anything else index.html does, the fixture stops
+    testing the documented path and starts testing our own page again.
+  -->
+  <link rel="stylesheet" href="https://unpkg.com/@matdata/yasgui@5.20.3/build/yasgui.min.css">
+  <script src="https://unpkg.com/@matdata/yasgui@5.20.3/build/yasgui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/n3@1.17.4/browser/n3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <script src="../src/nodica.js"></script>
+  <script src="../src/nodica-yasr-plugin.js"></script>
+</head>
+<body>
+  <div id="yasgui"></div>
+  <script>
+    // Exactly the snippet the README shows, nothing else.
+    // Make Nodica the view you land on. Without this YASR selects Table and
+    // the graph is only reached by clicking the tab - verified, and the
+    // reason this line is in the README at all.
+    Yasgui.Yasr.defaults.defaultPlugin = "nodica";
+    Yasgui.Yasr.defaults.plugins.nodica = {
+      enabled: true,
+      dynamicConfig: {
+        configTurtle: "@prefix cfg: <https://kvistgaard.github.io/config#> .\n" +
+          "<#c> a cfg:Configuration ; cfg:imageProperty <http://www.wikidata.org/prop/direct/P18> .",
+        height: "560px"
+      }
+    };
+    var yasgui = new Yasgui(document.getElementById("yasgui"), {
+      requestConfig: {
+        endpoint: "https://query.wikidata.org/sparql",
+        acceptHeaderGraph: "text/turtle"
+      }
+    });
+    yasgui.getTab().setQuery(
+      "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n" +
+      "CONSTRUCT { ?a wdt:P737 ?b . ?a wdt:P18 ?i } WHERE { ?a wdt:P737 ?b . ?a wdt:P18 ?i }"
+    );
+    yasgui.getTab().query();
+  </script>
+</body>
+</html>
