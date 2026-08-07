@@ -1,11 +1,12 @@
 {
   "name": "nodica",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "RDF graph visualisation with image-filled nodes. Standalone app, YASGUI/YASR plugin and Fractal Graph component.",
   "type": "commonjs",
   "main": "src/nodica.js",
   "scripts": {
     "test": "node test/core-test.js",
+    "test:browser": "node test/browser-smoke.mjs",
     "serve": "npx http-server -p 8090 -c-1 ."
   },
   "devDependencies": {

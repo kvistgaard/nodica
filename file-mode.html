@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nodica</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <!-- Apply the theme before first paint. Shares sparql.html's storage key
+       and format so a preference set on either page carries to the other
+       (that key/shape is YASGUI's own ThemeManager convention). -->
+  <script>
+    (function () {
+      var theme = null;
+      try {
+        var stored = localStorage.getItem("yasgui_theme");
+        if (stored) {
+          try {
+            var parsed = JSON.parse(stored);
+            theme = parsed && (parsed.val || parsed.value || parsed);
+          } catch (e) {
+            theme = stored;
+          }
+        }
+      } catch (e) { /* storage unavailable */ }
+      if (theme !== "dark" && theme !== "light") {
+        theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+
+  <!-- Shared design tokens (D19) - same file sparql.html loads, so the two
+       pages cannot visually drift apart. -->
+  <link rel="stylesheet" href="assets/theme.css">
+
+  <!-- Open the TLS connections while the HTML is still parsing. -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin>
+
+  <!-- Dependencies (pinned CDN versions). `defer` keeps them off the parser's
+       critical path; deferred scripts still run in order and still run before
+       DOMContentLoaded, which is what app.js waits for. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/n3@1.17.4/browser/n3.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 18px; margin: 0; line-height: 0; }
+    header .spacer { flex: 1; }
+    header #gh-link { display: flex; align-items: center; margin-left: 4px; color: var(--text); opacity: 0.8; transition: opacity 0.15s; }
+    header #gh-link:hover { opacity: 1; }
+    header .mode-link { color: var(--link); font-size: 13px; text-decoration: none; white-space: nowrap; }
+    header .mode-link:hover { text-decoration: underline; }
+    #theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      padding: 4px;
+      color: var(--text);
+      opacity: 0.8;
+      cursor: pointer;
+    }
+    #theme-toggle:hover { opacity: 1; background: none; }
+    #theme-toggle .icon-sun { display: none; }
+    html[data-theme="dark"] #theme-toggle .icon-sun { display: block; }
+    html[data-theme="dark"] #theme-toggle .icon-moon { display: none; }
+    button {
+      padding: 6px 14px;
+      background: var(--btn-bg);
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover { background: var(--btn-bg-hover); }
+    button.secondary { background: var(--btn-secondary-bg); color: var(--btn-secondary-text); }
+    button.secondary:hover { background: var(--btn-secondary-hover); }
+    #panel {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      overflow: auto;
+      max-height: 45vh;
+    }
+    #panel.collapsed { display: none; }
+    .columns { display: flex; gap: 16px; flex-wrap: wrap; }
+    .col { flex: 1; min-width: 320px; }
+    .col h3 { margin: 0 0 6px 0; font-size: 14px; }
+    textarea {
+      width: 100%;
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 12px;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--input-border);
+      border-radius: 4px;
+      padding: 8px;
+      resize: vertical;
+    }
+    .row { display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+    .row label { font-size: 13px; }
+    /* The native "Choose File" control ignores our color/background
+       properties (it's OS-drawn chrome), which is why it stayed light even
+       in dark mode. ::file-selector-button (and its older WebKit alias) is
+       the standard hook to restyle just that inner button so it matches
+       button.secondary, e.g. "Apply to view"; the "No file chosen" text
+       beside it is ordinary text and already follows --text via color:. */
+    input[type="file"] { font-size: 12px; color: var(--text); }
+    input[type="file"]::file-selector-button,
+    input[type="file"]::-webkit-file-upload-button {
+      padding: 6px 14px;
+      margin-right: 8px;
+      background: var(--btn-secondary-bg);
+      color: var(--btn-secondary-text);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    input[type="file"]::file-selector-button:hover,
+    input[type="file"]::-webkit-file-upload-button:hover {
+      background: var(--btn-secondary-hover);
+    }
+    input[type="url"] { flex: 1; min-width: 200px; padding: 5px; background: var(--panel); color: var(--text); border: 1px solid var(--input-border); border-radius: 4px; font-size: 12px; }
+    #settings { margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 8px; }
+    #settings .row label { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+    #settings input[type="number"] { width: 64px; padding: 3px; background: var(--panel); color: var(--text); border: 1px solid var(--input-border); border-radius: 4px; }
+    #settings input[type="color"] { width: 40px; height: 26px; padding: 0; border: 1px solid var(--input-border); border-radius: 4px; cursor: pointer; }
+    #settings input[type="text"] { width: 160px; padding: 4px; background: var(--panel); color: var(--text); border: 1px solid var(--input-border); border-radius: 4px; font-size: 12px; font-family: ui-monospace, Consolas, monospace; }
+    #status {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      display: none;
+      white-space: pre-wrap;
+    }
+    #status.info    { display: block; background: var(--status-info-bg); color: var(--status-info-text); }
+    #status.success { display: block; background: var(--status-success-bg); color: var(--status-success-text); }
+    #status.error   { display: block; background: var(--status-error-bg); color: var(--status-error-text); }
+    #graph-wrap { flex: 1; position: relative; background: var(--panel); min-height: 200px; }
+    #graph { width: 100%; height: 100%; --nodica-label-color: var(--text); --nodica-label-background: var(--panel); }
+    #graph-buttons {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 6px;
+      z-index: 5;
+    }
+    /* Matches YASGUI's Run button color (D19) so file mode and SPARQL
+       mode's equivalent controls (Fix layout / Unpin all / Fit) agree. */
+    #graph-buttons button { background: var(--btn-graph-bg); font-size: 13px; }
+    #graph-buttons button:hover { background: var(--btn-graph-bg-hover); }
+    #graph-buttons button svg { display: block; }
+    #graph-wrap:fullscreen { background: var(--panel); }
+    #prop-panel { position: absolute; top: 10px; left: 10px; z-index: 6; max-width: 300px; }
+    #prop-list {
+      margin-top: 6px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 2px 6px var(--prop-shadow);
+      padding: 8px;
+      max-height: 50vh;
+      overflow: auto;
+    }
+    #prop-list.collapsed { display: none; }
+    #prop-items label { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 2px 0; white-space: nowrap; color: var(--text); }
+    #prop-items .count { color: var(--count-color); }
+    .prop-actions { display: flex; gap: 12px; margin-bottom: 6px; }
+    .linklike { background: none; border: none; color: var(--link); cursor: pointer; font-size: 12px; padding: 0; }
+    .linklike:hover { text-decoration: underline; background: none; }
+    #graph-wrap:fullscreen #prop-panel { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>
+      <!-- inline logo: letters follow the theme, the red "o" stays brand red -->
+      <svg width="111" height="34" viewBox="0 0 520 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nodica">
+        <text x="30" y="118" font-family="Arial, Helvetica, sans-serif" font-size="110" font-weight="700" fill="currentColor" letter-spacing="-1">n<tspan fill="#E23B2E">o</tspan>dica</text>
+      </svg>
+    </h1>
+    <button id="toggle-panel" class="secondary">Hide input</button>
+    <span class="spacer"></span>
+    <button id="load-sample" class="secondary">Load sample</button>
+    <button id="render">Render</button>
+    <a class="mode-link" href="index.html" title="Switch to SPARQL mode: query an endpoint with YASGUI and render CONSTRUCT / DESCRIBE results as a graph">SPARQL mode</a>
+    <button id="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">
+      <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.5"/>
+        <path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/>
+      </svg>
+    </button>
+    <a id="gh-link" href="https://github.com/kvistgaard/nodica" target="_blank" rel="noopener noreferrer" aria-label="View source on GitHub" title="View source on GitHub">
+      <svg width="26" height="26" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+    </a>
+  </header>
+
+  <div id="panel">
+    <div class="columns">
+      <div class="col">
+        <h3>Data – Turtle / TriG / N-Triples (paste, upload or URL)</h3>
+        <textarea id="data-input" rows="9" spellcheck="false" placeholder="Paste RDF here, upload a file, or click 'Load sample'..."></textarea>
+        <div class="row">
+          <input type="file" id="data-file" accept=".ttl,.trig,.nt,.nq,.turtle,.n3,text/turtle">
+          <input type="url" id="data-url" placeholder="https://... (needs the page served over http(s))">
+          <button id="data-url-load" class="secondary">Fetch</button>
+        </div>
+      </div>
+      <div class="col">
+        <h3>Configuration – Turtle (cfg: vocabulary, optional)</h3>
+        <textarea id="config-input" rows="9" spellcheck="false" placeholder="Optional: paste a cfg: configuration. Built-in defaults are used otherwise."></textarea>
+        <div class="row">
+          <input type="file" id="config-file" accept=".ttl,.turtle,text/turtle">
+          <input type="url" id="config-url" placeholder="https://...settings.ttl">
+          <button id="config-url-load" class="secondary">Fetch</button>
+          <button id="export-config" class="secondary">Export current settings</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="settings">
+      <div class="row">
+        <label>Image property <input type="text" id="s-imageProperty"></label>
+        <label>Label property <input type="text" id="s-labelProperty"></label>
+        <label title="If a property has an rdfs:label in this language, edges use it instead of the URI">Property language <input type="text" id="s-edgeLabelLanguage"></label>
+        <label title="Ask Wikimedia Commons for a thumbnail this many pixels wide instead of the full-size original. 0 loads originals (slow: they are often tens of megabytes).">Image width <input type="number" id="s-imageMaxWidth" min="0" step="50"></label>
+        <label>Node size <input type="number" id="s-nodeSize" min="5" step="5"></label>
+        <label>Edge length <input type="number" id="s-edgeLength" min="20" step="10"></label>
+        <label>Edge width <input type="number" id="s-edgeWidth" min="1" step="1"></label>
+        <label>Node font <input type="number" id="s-nodeLabelFontSize" min="6" step="1"></label>
+        <label>Edge font <input type="number" id="s-edgeLabelFontSize" min="6" step="1"></label>
+        <label>Label distance <input type="number" id="s-nodeLabelDistance" min="0" step="1"></label>
+        <label>Outline <input type="color" id="s-nodeOutlineColor"></label>
+        <label>Edge color <input type="color" id="s-edgeColor"></label>
+        <label><input type="checkbox" id="s-physicsEnabled"> Physics</label>
+        <button id="apply-settings" class="secondary">Apply to view</button>
+        <button id="reset-settings" class="secondary" title="Forget the settings saved in this browser and return to the configuration file">Reset saved settings</button>
+      </div>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <div id="graph-wrap">
+    <div id="prop-panel">
+      <button id="prop-toggle" class="secondary">Properties &#x25B8;</button>
+      <div id="prop-list" class="collapsed">
+        <div class="prop-actions">
+          <button id="prop-all" class="linklike">show all</button>
+          <button id="prop-none" class="linklike">hide all</button>
+        </div>
+        <div id="prop-items"></div>
+      </div>
+    </div>
+    <div id="graph-buttons">
+      <button id="toggle-physics">Release layout</button>
+      <button id="unpin">Unpin all</button>
+      <button id="fit">Fit</button>
+      <button id="fullscreen" title="Fullscreen"></button>
+    </div>
+    <div id="graph"></div>
+  </div>
+
+  <script defer src="src/nodica.js"></script>
+  <script defer src="src/app.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      // Same storage key/shape sparql.html's YASGUI instance reads and
+      // writes (its ThemeManager owns this format); toggling here carries
+      // over to that page, and vice versa.
+      var STORAGE_KEY = "yasgui_theme";
+      function writeTheme(theme) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            namespace: "yasgui", val: theme, exp: 60 * 60 * 24 * 365, time: Date.now() / 1000,
+          }));
+        } catch (e) { /* storage unavailable */ }
+      }
+      document.getElementById("theme-toggle").addEventListener("click", function () {
+        var current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var next = current === "dark" ? "light" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        writeTheme(next);
+      });
+    })();
+  </script>
+</body>
+</html>

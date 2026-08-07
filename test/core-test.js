@@ -33,9 +33,9 @@ function read(rel) {
 (async function main() {
   console.log("Nodica core tests\n");
 
-  /* ---- parseConfig on examples/scientists-config.ttl ------------------ */
+  /* ---- parseConfig on test/scientists-config.ttl ------------------ */
   console.log("parseConfig (scientists-config.ttl)");
-  const cfg = await IG.parseConfig(read("examples/scientists-config.ttl"));
+  const cfg = await IG.parseConfig(read("test/scientists-config.ttl"));
   check("imageProperty", cfg.imageProperty === "https://schema.org/image", cfg.imageProperty);
   check("labelProperty", cfg.labelProperty === "http://www.w3.org/2000/01/rdf-schema#label", cfg.labelProperty);
   check("nodeSize 60", cfg.nodeSize === 60, cfg.nodeSize);
@@ -56,7 +56,7 @@ function read(rel) {
   /* ---- Turtle model ---------------------------------------------------- */
   console.log("buildModel (scientists.ttl)");
   const settings = IG.mergeSettings(cfg);
-  const ttl = await IG.parseRdf(read("examples/scientists.ttl"));
+  const ttl = await IG.parseRdf(read("test/scientists.ttl"));
   // 6 persons; triples: einstein 5, bohr 4, curie 5, rutherford 4, planck 3, thomson 2 = 23
   check("23 quads parsed", ttl.quads.length === 23, ttl.quads.length);
   const model = IG.buildModel(ttl.quads, settings, ttl.prefixes);
@@ -83,7 +83,7 @@ function read(rel) {
 
   /* ---- TriG model: flattening + dedup ---------------------------------- */
   console.log("buildModel (scientists.trig)");
-  const trig = await IG.parseRdf(read("examples/scientists.trig"));
+  const trig = await IG.parseRdf(read("test/scientists.trig"));
   const model2 = IG.buildModel(trig.quads, settings, trig.prefixes);
   // Same data as the .ttl, with :curie rel:colleagueOf :einstein duplicated
   // across graphs: model must match the Turtle one exactly after dedup.
@@ -426,6 +426,38 @@ function read(rel) {
     asKeyValues(embeddedSettings) === asKeyValues(deployImw),
     { embedded: asKeyValues(embeddedSettings), file: asKeyValues(deployImw) });
 
+  /* SAMPLE_DATA must equal examples/influences.ttl. It has to be inline (it
+     is the fallback for when fetching is impossible), so the file is a second
+     copy - and a second copy is a drift waiting to happen, exactly as for
+     DEFAULT_CONFIG above. */
+  const sdStart = appSrc.indexOf("var SAMPLE_DATA = [");
+  const sdEnd = appSrc.indexOf("].join('\\n');", sdStart);
+  check("SAMPLE_DATA is findable in app.js", sdStart !== -1 && sdEnd !== -1);
+  const embeddedSample = appSrc
+    .slice(appSrc.indexOf("[", sdStart) + 1, sdEnd)
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l !== "")
+    .map((l) => JSON.parse(l.replace(/,$/, "")))
+    .join("\n");
+  let sampleFile = null;
+  try {
+    sampleFile = fs.readFileSync(path.join(__dirname, "..", "examples", "influences.ttl"), "utf8")
+      .replace(/\r\n/g, "\n").replace(/\n+$/, "");
+  } catch (e) { /* reported below */ }
+  check("examples/influences.ttl is readable", sampleFile !== null);
+  check("SAMPLE_DATA in app.js stays in sync with examples/influences.ttl",
+    sampleFile !== null && embeddedSample === sampleFile,
+    sampleFile === null ? "file missing" : {
+      embeddedLines: embeddedSample.split("\n").length,
+      fileLines: sampleFile.split("\n").length,
+    });
+  const sampleParsed = sampleFile === null ? null : await IG.parseRdf(embeddedSample);
+  check("the fallback sample parses and has image-bearing nodes",
+    sampleParsed !== null && sampleParsed.quads.length > 50 &&
+    IG.detectImageProperty(sampleParsed.quads, "http://www.wikidata.org/prop/direct/P18").matches > 5,
+    sampleParsed && sampleParsed.quads.length);
+
   /* ---- size-dependent render options (D20) ------------------------------ */
   console.log("size-dependent vis options (D20)");
   const small = IG.toVisOptions(IG.mergeSettings(), { nodeCount: 50, edgeCount: 40 });
@@ -533,6 +565,54 @@ function read(rel) {
     new Plugin(mockYasr("", "@prefix ex: <http://x.org/> . ex:a ex:p ex:b .")).canHandleResults() === true);
   check("empty response declined",
     new Plugin(mockYasr("text/turtle", "")).canHandleResults() === false);
+
+  /* ---- query comment directives (D26) ---------------------------------- */
+  console.log("parseQueryDirectives (D26)");
+  const Q = (s) => IG.parseQueryDirectives(s);
+  const P18 = "http://www.wikidata.org/prop/direct/P18";
+
+  check("no marker -> {}",
+    Object.keys(Q("CONSTRUCT { ?a ?b ?c } WHERE { ?a ?b ?c }")).length === 0);
+  check("inline marker takes the predicate on its line",
+    Q('PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n?a wdt:P18 ?img . # nodica:image').imageProperty === P18);
+  check("marker without a space still matches",
+    Q('PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n?a wdt:P18 ?i .#nodica:image').imageProperty === P18);
+  check("subject that is an IRI does not win over the predicate",
+    Q('PREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nwd:Q1339 wdt:P18 ?i . # nodica:image').imageProperty === P18);
+  check("`;`-continuation line whose predicate leads",
+    Q('PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n   wdt:P18 ?i ; # nodica:image').imageProperty === P18);
+  check("full <IRI> predicate",
+    Q('<http://x.org/a> <http://x.org/pic> ?i . # nodica:image').imageProperty === "http://x.org/pic");
+  check("explicit argument wins over the line",
+    Q('PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n?a ?p ?i . # nodica:image wdt:P18').imageProperty === P18);
+  check("marker alone on its own line with an argument",
+    Q('PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n# nodica:image wdt:P18\nCONSTRUCT{}WHERE{}').imageProperty === P18);
+  check("well-known prefix needs no PREFIX line",
+    Q('?a foaf:depiction ?i . # nodica:image').imageProperty === "http://xmlns.com/foaf/0.1/depiction");
+  check("unknown prefix yields nothing",
+    Q('?a zzz:pic ?i . # nodica:image').imageProperty === undefined);
+  check("variable predicate yields nothing",
+    Q('?a ?p ?i . # nodica:image').imageProperty === undefined);
+  check("unknown directive ignored",
+    Object.keys(Q('?a wdt:P18 ?i . # nodica:banana')).length === 0);
+  check("`#` inside an IRI is not a comment",
+    Q('?a <http://x.org/ns#pic> ?i . # nodica:image').imageProperty === "http://x.org/ns#pic");
+  check("`#` inside a literal is not a comment",
+    Object.keys(Q('?a rdfs:label "a # b" . FILTER(1=1)')).length === 0);
+  // Real formatting: a keyword and two patterns share the marker's line. The
+  // first version of the parser scanned forward, hit "CONSTRUCT", and
+  // returned nothing - the browser test caught it, these lock it down.
+  check("keyword + two patterns on the marker's line -> the nearest pattern",
+    Q('PREFIX foaf: <http://xmlns.com/foaf/0.1/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\nCONSTRUCT { ?a wdt:P737 ?b . ?a foaf:depiction ?img .   # nodica:image')
+      .imageProperty === "http://xmlns.com/foaf/0.1/depiction");
+  check("object that is an IRI does not win over the predicate",
+    Q('PREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\n?child wdt:P22 wd:Q1339 . # nodica:image')
+      .imageProperty === "http://www.wikidata.org/prop/direct/P22");
+  check("last marker wins when repeated",
+    Q('PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n?a wdt:P18 ?i . # nodica:image\n?a foaf:depiction ?j . # nodica:image')
+      .imageProperty === "http://xmlns.com/foaf/0.1/depiction");
+  check("non-string input is safe",
+    Object.keys(Q(null)).length === 0 && Object.keys(Q(undefined)).length === 0);
 
   console.log("YASR plugin settings resolution (D8)");
   const cfgYasr = mockYasr("text/turtle", "");

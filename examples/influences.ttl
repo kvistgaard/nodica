@@ -1,0 +1,268 @@
+@prefix wd: <http://www.wikidata.org/entity/> .
+@prefix wdt: <http://www.wikidata.org/prop/direct/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix wikibase: <http://wikiba.se/ontology#> .
+@prefix bd: <http://www.bigdata.com/rdf#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix sesame: <http://www.openrdf.org/schema/sesame#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix fn: <http://www.w3.org/2005/xpath-functions#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix hint: <http://www.bigdata.com/queryHints#> .
+@prefix bds: <http://www.bigdata.com/rdf/search#> .
+@prefix psn: <http://www.wikidata.org/prop/statement/value-normalized/> .
+@prefix pqn: <http://www.wikidata.org/prop/qualifier/value-normalized/> .
+@prefix prn: <http://www.wikidata.org/prop/reference/value-normalized/> .
+@prefix mwapi: <https://www.mediawiki.org/ontology#API/> .
+@prefix gas: <http://www.bigdata.com/rdf/gas#> .
+@prefix wdsubgraph: <https://query.wikidata.org/subgraph/> .
+@prefix wdtn: <http://www.wikidata.org/prop/direct-normalized/> .
+@prefix psv: <http://www.wikidata.org/prop/statement/value/> .
+@prefix ps: <http://www.wikidata.org/prop/statement/> .
+@prefix pqv: <http://www.wikidata.org/prop/qualifier/value/> .
+@prefix pq: <http://www.wikidata.org/prop/qualifier/> .
+@prefix prv: <http://www.wikidata.org/prop/reference/value/> .
+@prefix pr: <http://www.wikidata.org/prop/reference/> .
+@prefix wdno: <http://www.wikidata.org/prop/novalue/> .
+@prefix p: <http://www.wikidata.org/prop/> .
+@prefix wdata: <http://www.wikidata.org/wiki/Special:EntityData/> .
+@prefix wds: <http://www.wikidata.org/entity/statement/> .
+@prefix wdv: <http://www.wikidata.org/value/> .
+@prefix wdref: <http://www.wikidata.org/reference/> .
+@prefix schema: <http://schema.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix geof: <http://www.opengis.net/def/geosparql/function/> .
+@prefix mediawiki: <https://www.mediawiki.org/ontology#> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix wikibaseqs: <http://wikiba.se/queryService#> .
+
+wd:Q294344 wdt:P737 wd:Q6527 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Emmanuel%20Joseph%20Siey%C3%A8s%2C%20by%20Jacques%20Louis%20David.jpg> .
+
+wd:Q6527 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Jean-Jacques%20Rousseau%20%28painted%20portrait%29.jpg> .
+
+wd:Q294344 rdfs:label "Emmanuel Joseph Sieyès"@en .
+
+wd:Q6527 rdfs:label "Jean-Jacques Rousseau"@en .
+
+wdt:P737 rdfs:label "influenced by"@en .
+
+wd:Q767210 wdt:P737 wd:Q9191 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20of%20a%20Man%20with%20a%20Tall%20Hat%20and%20Gloves%2C%20Rembrandt%20van%20Rijn%2C%20c.%201656%2C%20National%20Gallery%20of%20Art%2C%20Washington.jpg> .
+
+wd:Q9191 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Frans%20Hals%20-%20Portret%20van%20Ren%C3%A9%20Descartes.jpg> .
+
+wd:Q767210 rdfs:label "Frans van Schooten"@en .
+
+wd:Q9191 rdfs:label "René Descartes"@en .
+
+wd:Q9312 wdt:P737 wd:Q9191 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Immanuel%20Kant%20-%20Gemaelde%202.jpg> ;
+	rdfs:label "Immanuel Kant"@en .
+
+wd:Q52937 wdt:P737 wd:Q9191 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Queen%20Christina%20%28S%C3%A9bastien%20Bourdon%29%20-%20Nationalmuseum%20-%2018075FXD.jpg> ;
+	rdfs:label "Christina of Sweden"@en .
+
+wd:Q223723 wdt:P737 wd:Q448 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Cesare%20Beccaria.jpg> .
+
+wd:Q448 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Denis%20Diderot%20-%20Alix%20-%20Vanloo.png> .
+
+wd:Q223723 rdfs:label "Cesare Beccaria"@en .
+
+wd:Q448 rdfs:label "Denis Diderot"@en .
+
+wd:Q9068 wdt:P737 wd:Q859 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Nicolas%20de%20Largilli%C3%A8re%20-%20Portrait%20de%20Voltaire%20%281694-1778%29%20en%201718%20-%20P208%20-%20Mus%C3%A9e%20Carnavalet%20-%202.jpg> .
+
+wd:Q859 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Plato%20Silanion%20Musei%20Capitolini%20MC1377.jpg> .
+
+wd:Q9068 rdfs:label "Voltaire"@en .
+
+wd:Q859 rdfs:label "Plato"@en .
+
+wd:Q9047 wdt:P737 wd:Q868 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Christoph%20Bernhard%20Francke%20-%20Bildnis%20des%20Philosophen%20Leibniz%20%28ca.%201695%29.jpg> .
+
+wd:Q868 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Aristotle%20Altemps%20Inv8575.jpg> .
+
+wd:Q9047 rdfs:label "Gottfried Wilhelm Leibniz"@en .
+
+wd:Q868 rdfs:label "Aristotle"@en .
+
+wd:Q648051 wdt:P737 wd:Q2161 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Andrzej%20maksymilian%20fredro.jpg> .
+
+wd:Q2161 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Tacitus%2C%20Cornelius%20%2850%20-%20116%29.jpg> .
+
+wd:Q648051 rdfs:label "Andrzej Maksymilian Fredro"@en .
+
+wd:Q2161 rdfs:label "Tacitus"@en .
+
+wd:Q9191 wdt:P737 wd:Q868 .
+
+wd:Q336803 wdt:P737 wd:Q859 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/%D0%93%D1%80%D0%B8%D0%B3%D0%BE%D1%80%D0%B8%D0%B9%20%D0%A1%D0%BA%D0%BE%D0%B2%D0%BE%D1%80%D0%BE%D0%B4%D0%B0.jpg> ;
+	rdfs:label "Hryhorii Skovoroda"@en .
+
+wd:Q1290 wdt:P737 wd:Q9191 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Blaise%20Pascal%20Versailles.JPG> ;
+	rdfs:label "Blaise Pascal"@en .
+
+wd:Q7286 wdt:P737 wd:Q9068 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Emilie%20Chatelet%20portrait%20by%20Latour.jpg> ;
+	rdfs:label "Émilie du Châtelet"@en .
+
+wd:Q448 wdt:P737 wd:Q868 .
+
+wd:Q39599 wdt:P737 wd:Q307 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Christiaan-huygens4.jpg> .
+
+wd:Q307 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Galileo.arp.300pix.jpg> .
+
+wd:Q39599 rdfs:label "Christiaan Huygens"@en .
+
+wd:Q307 rdfs:label "Galileo Galilei"@en .
+
+wd:Q2421235 wdt:P737 wd:Q9191 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Gilles-Fran%C3%A7ois-Boulduc%281675-1742%29-Portrait.jpg> ;
+	rdfs:label "Gilles-François Boulduc"@en .
+
+wd:Q5879 wdt:P737 wd:Q9068 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Goethe%20%28Stieler%201828%29.jpg> ;
+	rdfs:label "Johann Wolfgang von Goethe"@en .
+
+wd:Q192062 wdt:P737 wd:Q297 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Autorretrato%20de%20Murillo.jpg> .
+
+wd:Q297 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Diego%20Vel%C3%A1zquez%20Autorretrato%2045%20x%2038%20cm%20-%20Colecci%C3%B3n%20Real%20Academia%20de%20Bellas%20Artes%20de%20San%20Carlos%20-%20Museo%20de%20Bellas%20Artes%20de%20Valencia.jpg> .
+
+wd:Q192062 rdfs:label "Bartolomé Esteban Murillo"@en .
+
+wd:Q297 rdfs:label "Diego Velázquez"@en .
+
+wd:Q35802 wdt:P737 wd:Q859 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Spinoza.jpg> ;
+	rdfs:label "Benedictus de Spinoza"@en .
+
+wd:Q648051 wdt:P737 wd:Q12735 .
+
+wd:Q12735 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Jan%20Amos%20Comenius%20%28Komensky%29%20%281592-1670%29.%20Tsjechisch%20humanist%20en%20pedagoog.%20Als%20voorganger%20van%20de%20Moravische%20of%20Boheemse%20Broedergemeente%20verdreven%20en%20sedert%201656%20gevestigd%20te%20Amsterdam%20Rijksmuseum%20SK-A-2161.jpeg> ;
+	rdfs:label "John Amos Comenius"@en .
+
+wd:Q155547 wdt:P737 wd:Q9312 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Johann%20Gottfried%20Herder%202.jpg> ;
+	rdfs:label "Johann Gottfried Herder"@en .
+
+wd:Q9047 wdt:P737 wd:Q859 .
+
+wd:Q5879 wdt:P737 wd:Q692 .
+
+wd:Q692 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Shakespeare.jpg> ;
+	rdfs:label "William Shakespeare"@en .
+
+wd:Q9068 wdt:P737 wd:Q742 .
+
+wd:Q742 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Jean%20Racine%20-%20Versailles%20MV%202926.jpg> ;
+	rdfs:label "Jean Racine"@en .
+
+wd:Q9191 wdt:P737 wd:Q859 .
+
+wd:Q168004 wdt:P737 wd:Q5879 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Friedrich%20Heinrich%20Jacobi%20portrait.jpg> ;
+	rdfs:label "Friedrich Heinrich Jacobi"@en .
+
+wd:Q742 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20de%20Jean%20Racine%20d%27apr%C3%A8s%20Jean-Baptiste%20Santerre.jpg> .
+
+wd:Q294344 wdt:P737 wd:Q9068 .
+
+wd:Q935 wdt:P737 wd:Q9191 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/GodfreyKneller-IsaacNewton-1689.jpg> ;
+	rdfs:label "Isaac Newton"@en .
+
+wd:Q35802 wdt:P737 wd:Q9191 .
+
+wd:Q47208 wdt:P737 wd:Q6527 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Louis-Claude%20de%20Saint-Martin%2C%20portrait%20au%20physionotrace.jpg> ;
+	rdfs:label "Louis-Claude de Saint-Martin"@en .
+
+wd:Q72151 wdt:P737 wd:Q9312 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Marcus%20Herz2.jpg> ;
+	rdfs:label "Markus Herz"@en .
+
+wd:Q154367 wdt:P737 wd:Q6197 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Klopstock%20%28Juel%29.jpg> .
+
+wd:Q6197 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Quintus%20Horatius%20Flaccus.jpg> .
+
+wd:Q154367 rdfs:label "Friedrich Gottlieb Klopstock"@en .
+
+wd:Q6197 rdfs:label "Horace"@en .
+
+wd:Q9068 wdt:P737 wd:Q692 .
+
+wd:Q216692 wdt:P737 wd:Q687 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Ludvig%20Holberg.jpg> .
+
+wd:Q687 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Pierre%20Mignard%20-%20Portrait%20de%20Jean-Baptiste%20Poquelin%20dit%20Moli%C3%A8re%20%281622-1673%29%20-%20Google%20Art%20Project%20%28cropped%29.jpg> .
+
+wd:Q216692 rdfs:label "Ludvig Holberg"@en .
+
+wd:Q687 rdfs:label "Molière"@en .
+
+wd:Q9047 wdt:P737 wd:Q9191 .
+
+wd:Q9312 wdt:P737 wd:Q6527 .
+
+wd:Q5879 wdt:P737 wd:Q6240 .
+
+wd:Q6240 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Anselm%20Feuerbach%20Hafis%20vor%20der%20Schenke%20%28cropped%29.jpg> ;
+	rdfs:label "Hafez"@en .
+
+wd:Q192062 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Murillo%20Self-portrait.jpg> .
+
+wd:Q551894 wdt:P737 wd:Q6527 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Portrait%20de%20Ren%C3%A9-Louis%20de%20Girardin%20-%20Chaalis.jpg> ;
+	rdfs:label "René de Girardin"@en .
+
+wd:Q448 wdt:P737 wd:Q9068 .
+
+wd:Q43393 wdt:P737 wd:Q9191 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/The%20Shannon%20Portrait%20of%20the%20Hon%20Robert%20Boyle.jpg> ;
+	rdfs:label "Robert Boyle"@en .
+
+wd:Q9312 wdt:P737 wd:Q859 .
+
+wd:Q102490 wdt:P737 wd:Q307 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Evangelista%20Torricelli%20by%20Lorenzo%20Lippi%20%28circa%201647%2C%20Galleria%20Silvano%20Lodi%20%26%20Due%29.jpg> ;
+	rdfs:label "Evangelista Torricelli"@en .
+
+wd:Q336803 wdt:P737 wd:Q868 .
+
+wd:Q214544 wdt:P737 wd:Q307 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Bonaventura%20Cavalieri.%20Fusinati%20sculp%20%28cropped%29.jpg> ;
+	rdfs:label "Bonaventura Cavalieri"@en .
+
+wd:Q43393 wdt:P737 wd:Q307 .
+
+wd:Q35802 wdt:P737 wd:Q868 .
+
+wd:Q9047 wdt:P737 wd:Q11903 .
+
+wd:Q11903 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Hipatia67.jpg> ;
+	rdfs:label "Hypatia"@en .
+
+wd:Q309818 wdt:P737 wd:Q9191 ;
+	wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Nicolas%20Malebranche%20-%20Versailles%20MV%202929.jpg> ;
+	rdfs:label "Nicolas Malebranche"@en .
+
+wd:Q5879 wdt:P737 wd:Q517 .
+
+wd:Q517 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Jacques-Louis%20David%20-%20The%20Emperor%20Napoleon%20in%20His%20Study%20at%20the%20Tuileries%20-%20Google%20Art%20Project.jpg> ;
+	rdfs:label "Napoleon"@en .

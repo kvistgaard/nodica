@@ -222,9 +222,38 @@
         return {};
       })
       .then(function (fileSettings) {
-        return N.mergeSettings(fileSettings, N.sanitizeSettings(overrides));
+        return N.mergeSettings(
+          fileSettings,
+          N.sanitizeSettings(overrides),
+          // Query directives last, so what the query says wins over the page
+          // config - the query is the more specific, and more portable,
+          // statement of intent (D26).
+          //
+          // sanitizeUserSettings, NOT sanitizeSettings: a query is authored by
+          // a user and is routinely pasted in from elsewhere, so it sits on
+          // the user side of D10's trust boundary and must not be able to set
+          // operator-only terms (dataSource, fallback, settingsLocked).
+          N.sanitizeUserSettings(self._querySettings || {})
+        );
       });
     return this._settingsPromise;
+  };
+
+  /**
+   * Supply settings read from the SPARQL query's comment directives (D26).
+   *
+   * The host page passes these in because a YASR results plugin cannot reach
+   * the query itself - `yasr` exposes results, config and DOM, and nothing
+   * that leads back to the editor (verified against 5.20.3). Clears the
+   * resolved-settings cache so the next draw picks the new value up; editing
+   * the marker and re-running would otherwise keep the first value.
+   */
+  NodicaPlugin.prototype.setQuerySettings = function (settings) {
+    var next = JSON.stringify(settings || {});
+    if (next === JSON.stringify(this._querySettings || {})) return;
+    this._querySettings = settings || {};
+    this._settingsPromise = null;
+    this._cacheKey = null; // model was built with the old image property
   };
 
   /** Replace the container content with a plain-text notice. */

@@ -473,6 +473,123 @@
     wdt: "http://www.wikidata.org/prop/direct/",
   };
 
+  /** Comment markers understood in a SPARQL query -> settings key (D26). */
+  var QUERY_DIRECTIVES = { image: "imageProperty" };
+
+  var RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+  /** True for something usable as a predicate: <iri>, prefix:local, or `a`. */
+  function isTermToken(t) {
+    return /^<[^>\s]*>$/.test(t) || /^[A-Za-z][\w.\-]*:[^\s<>"'{}]*$/.test(t) || t === "a";
+  }
+
+  /** `<iri>` / `prefix:local` / `a` -> absolute IRI, or null if unresolvable. */
+  function expandTerm(token, prefixes) {
+    if (!token) return null;
+    if (token === "a") return RDF_TYPE;
+    if (/^<[^>\s]*>$/.test(token)) return token.slice(1, -1);
+    var i = token.indexOf(":");
+    if (i === -1) return null;
+    var pfx = token.slice(0, i);
+    var ns = (prefixes && prefixes[pfx]) || WELL_KNOWN_PREFIXES[pfx];
+    return ns ? ns + token.slice(i + 1) : null;
+  }
+
+  /**
+   * Index of the first `#` that starts a comment - i.e. one that is not inside
+   * an <IRI> (`<http://x#y>`) or a quoted literal. Scanning rather than
+   * indexOf("#") because both are ordinary in SPARQL.
+   */
+  function commentStart(line) {
+    var inIri = false, quote = null;
+    for (var i = 0; i < line.length; i++) {
+      var c = line.charAt(i);
+      if (quote) {
+        if (c === "\\") i++;
+        else if (c === quote) quote = null;
+      } else if (c === '"' || c === "'") quote = c;
+      else if (c === "<") inIri = true;
+      else if (c === ">") inIri = false;
+      else if (c === "#" && !inIri) return i;
+    }
+    return -1;
+  }
+
+  /**
+   * The predicate of the triple pattern the marker is attached to.
+   *
+   * Read from the END of the line, not the start: the marker is written after
+   * the pattern it annotates, and a line may hold more than one pattern plus
+   * a keyword - `CONSTRUCT { ?a wdt:P737 ?b . ?a foaf:depiction ?img .` is
+   * ordinary formatting, and scanning forward picked `CONSTRUCT` and gave up.
+   * So the last pattern wins, which is also the one nearest the marker.
+   *
+   * Positional rather than "the last IRI-looking token", because objects are
+   * frequently IRIs too (`?child wdt:P22 wd:Q1339`) and would win. In
+   * `subject predicate object` the predicate is second-from-last; a
+   * `;`-continuation drops the subject (`rdfs:label ?l`), which lands on the
+   * same slot. A bare predicate on its own is the remaining fallback.
+   */
+  function predicateOnLine(text, prefixes) {
+    var tokens = String(text).trim().split(/\s+/)
+      .map(function (t) { return t.replace(/^[;,{}()]+|[;,.{}()]+$/g, ""); })
+      .filter(function (t) { return t !== ""; });
+    var candidates = [tokens[tokens.length - 2], tokens[tokens.length - 1]];
+    for (var i = 0; i < candidates.length; i++) {
+      if (candidates[i] && isTermToken(candidates[i])) {
+        var iri = expandTerm(candidates[i], prefixes);
+        if (iri) return iri;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Read Nodica directives out of a SPARQL query's comments (D26).
+   *
+   * Data-centricity: the query carries its own presentation, so sharing the
+   * query reproduces the graph - which a per-browser setting cannot do.
+   * Follows the convention Wikidata Query Service established with
+   * `#defaultView:`, and the marker is written where the property is used:
+   *
+   *     ?child wdt:P18 ?img .   # nodica:image
+   *
+   * The marker takes the predicate of the triple pattern on its own line (one
+   * pattern per line, as SPARQL is normally formatted). An explicit argument
+   * wins when given, which also covers a marker on a line of its own:
+   *
+   *     # nodica:image wdt:P18
+   *
+   * Prefixes come from the query's own PREFIX declarations, falling back to
+   * the well-known table. Returns a settings object ({} when nothing is
+   * marked) for the caller to merge - it is not sanitized here, so it passes
+   * through the same validation as any other settings source.
+   */
+  function parseQueryDirectives(query) {
+    var out = {};
+    if (typeof query !== "string" || query === "") return out;
+
+    var prefixes = {};
+    var re = /(?:^|\s)PREFIX\s+([A-Za-z][\w.\-]*)?\s*:\s*<([^>]*)>/gi;
+    var m;
+    while ((m = re.exec(query)) !== null) prefixes[m[1] || ""] = m[2];
+
+    var lines = query.split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var at = commentStart(lines[i]);
+      if (at === -1) continue;
+      var d = /^\s*nodica:([A-Za-z]+)\s*(\S+)?/i.exec(lines[i].slice(at + 1));
+      if (!d) continue;
+      var key = QUERY_DIRECTIVES[d[1].toLowerCase()];
+      if (!key) continue;
+      var iri = d[2]
+        ? expandTerm(d[2].replace(/^[;,]+|[;,.]+$/g, ""), prefixes)
+        : predicateOnLine(lines[i].slice(0, at), prefixes);
+      if (iri) out[key] = iri;
+    }
+    return out;
+  }
+
   /**
    * Build a shortening function for one document: the merged prefix table and
    * the results are computed once, not per URI. `buildModel` shortens once per
@@ -1015,7 +1132,7 @@
   /* ------------------------------------------------------------------ */
 
   root.Nodica = {
-    VERSION: "0.2.0",
+    VERSION: "0.3.0",
     CFG_NS: CFG_NS,
     DEFAULTS: DEFAULTS,
     CONFIG_TERMS: CONFIG_TERMS,
@@ -1029,6 +1146,7 @@
     escapeHtml: escapeHtml,
     configToTurtle: configToTurtle,
     detectImageProperty: detectImageProperty,
+    parseQueryDirectives: parseQueryDirectives,
     resolveEntityUrl: resolveEntityUrl,
     normalizeImageUrl: normalizeImageUrl,
     buildModel: buildModel,

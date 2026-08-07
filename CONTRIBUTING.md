@@ -5,7 +5,8 @@
 ```
 src/nodica.js          Core library – all logic, no DOM except GraphView
 app.js                 Standalone app wiring – DOM, fetch, localStorage
-index.html             Single-page UI
+index.html             SPARQL mode (default page)
+file-mode.html         File mode UI
 settings.ttl           Operator deployment settings (D10)
 vocab/config-ontology.ttl  cfg: vocabulary
 test/core-test.js      Node.js test harness (no browser)
@@ -56,7 +57,7 @@ The test suite covers all decisions D1–D12. Run it after every change.
 ### Adding a feature
 
 1. If it touches the core (model building, config parsing, rendering options): add it to `src/nodica.js` and write tests in `test/core-test.js` before touching `app.js`.
-2. If it's UI-only (new button, layout tweak): `app.js` and `index.html` only.
+2. If it's UI-only (new button, layout tweak): `app.js` and `file-mode.html` only.
 3. If it introduces a new `cfg:` term: update `vocab/config-ontology.ttl` first, then `CONFIG_TERMS` in `nodica.js`, then the `SAMPLE_CONFIG`/`DEFAULT_CONFIG` strings in `app.js` if the term needs a default, and `settings.ttl`.
 
 ### Changing `settings.ttl`

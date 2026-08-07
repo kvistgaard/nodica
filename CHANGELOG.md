@@ -13,6 +13,114 @@ Entries cite the decision that explains them (`D20`, …). The decisions live in
 
 Nothing yet.
 
+## [0.3.0] - 2026-08-07
+
+SPARQL mode becomes the front door, and a query can now say which property
+fills its nodes.
+
+### Changed — action may be required
+
+- **SPARQL mode is now `index.html`; file mode moved to `file-mode.html`.**
+  The bare deployment URL opens the query editor. **A bookmark or link to
+  `sparql.html` will 404** — use the site root instead; links to `index.html`
+  meaning file mode now land on SPARQL mode. The two pages link to each other
+  from their headers. (D27)
+- **File mode's built-in fallback sample is the Enlightenment-influences
+  graph** (`examples/influences.ttl`, real Wikidata output) instead of the
+  synthetic scientists set, so both modes show the same graph when nothing
+  else is available. `cfg:dataSource` is unchanged — file mode still opens on
+  the uncle-relations graph when it can be fetched. The scientists files moved
+  from `examples/` to `test/`, where they remain as test fixtures. (D27)
+
+### Added
+
+- **`# nodica:image` — choose the image property from inside the SPARQL
+  query.** Mark the property on the line where it is used and the query
+  carries its own presentation, so sharing the query reproduces the graph;
+  `# nodica:image wdt:P18` names it explicitly. Parsed by
+  `Nodica.parseQueryDirectives()` (new, in the core), merged over the page
+  config and sanitized as user-level input so a pasted query cannot set
+  operator-only terms. (D26)
+- `NodicaPlugin#setQuerySettings()` — how a host page passes query-derived
+  settings in, since a YASR plugin cannot reach the query itself. (D26)
+- SPARQL mode's default query is now an Enlightenment-influences graph
+  carrying its own image marker. (D26)
+- `test/browser-smoke.mjs` (`npm run test:browser`) — browser regression checks
+  for `sparql.html`: footer placement, graph filling its panel, column
+  alignment, the Properties filter, layout controls, and button colours,
+  across two viewport sizes, both themes, every results view, **both layout
+  orientations, and the returning-user reload path**. Controls are asserted
+  *visible at their screen position* (`elementFromPoint`), not merely present
+  in the DOM — presence passed while everything was collapsed to 2px. Each
+  assertion corresponds to a defect that reached a user; `npm test` covers the
+  DOM-free core only, which is why they were not caught. (D23, D24)
+
+### Changed
+
+- **SPARQL mode's vertical layout is now pure CSS.** The JavaScript that
+  measured the graph's position and set a pixel height on it is gone; flexbox
+  pins the footer for every results view instead. (D23)
+
+### Fixed
+
+- **SPARQL mode: the query editor can be resized again, and has one scrollbar
+  instead of two.** A `max-height` added in 0.2.x silently overrode the inline
+  height YASQE's drag grip writes, so the grip did nothing; the `overflow-y`
+  beside it stacked a second native scrollbar on CodeMirror's own. Both are
+  gone — the editor was never auto-growing and never lacked a scroller, which
+  was the premise they were added on. Its starting height is now fitted to the
+  window instead, and left alone entirely once you drag it. (D25)
+- **SPARQL mode: the graph no longer disappears on short windows.** The
+  results pane could collapse to zero height, which also hid the fact that
+  anything was wrong — the page reported no overflow. It now keeps a floor.
+  (D25)
+- **SPARQL mode: Horizontal Layout (the fork's side-by-side mode) no longer
+  collapses the graph to 2px**, which took the Properties filter and the
+  layout controls with it — in the DOM but invisible. The fork pins its
+  results column to an explicit small height there; the column now stretches
+  to the row. The graph, filter and controls were never removed from the
+  code — `src/` is untouched this session — they were rendered into a
+  collapsed container, in an orientation no earlier check ever ran in. (D24)
+- **SPARQL mode: the Response view neither gets squeezed by the query
+  editor's height cap (an over-broad selector) nor overflows the page on
+  short windows** — its CodeMirror is a flex item that scrolls internally,
+  like the graph. (D24)
+- **SPARQL mode: the footer no longer floats above the bottom of the window in
+  the Table or Response views, or on a new tab** (measured: 436px, 233px and
+  436px of dead space). The old JavaScript fit sized only the Nodica graph
+  container, so any view without one left nothing holding the page open. (D23)
+- **SPARQL mode: the graph fills the results panel** instead of stopping short
+  and leaving blank space above the footer — YASGUI's `.yasrWrapperEl` does
+  not grow, capping the panel at its content height. (D23)
+
+- **SPARQL mode: the graph no longer sits at a fixed 560px with dead space
+  below the footer on tall viewports.** Its height is now fit to actual
+  available space (viewport height minus the graph's rendered top position
+  minus the footer), re-measured on resize and on every redraw, floored at
+  420px so short windows scroll instead of squashing the canvas. YASGUI's own
+  editor/results layout is untouched — only Nodica's own container is resized.
+  (D22)
+- **SPARQL mode: the footer is reachable without scrolling at any realistic
+  window height.** YASGUI's stylesheet pinned the page at a minimum 904px
+  (`.yasgui{min-height:800px}` plus `.yasr{min-height:400px}`) no matter how
+  small its contents were; both are now released, so the page is sized by its
+  actual content. Measured overflow is 0 at every viewport height from 620px
+  up. (D22)
+- **SPARQL mode: the query editor is sized to fit a short window** on load,
+  and left alone once you resize it yourself. (An earlier attempt within this
+  release capped it in CSS instead; that broke drag-to-resize and is described
+  under the editor fix below. D22, corrected by D25.)
+- **SPARQL mode: the graph fit was 16px short**, subtracting only the footer
+  and not `#yasgui`'s bottom padding — enough on its own to keep a scrollbar
+  alive on every screen size. It now measures the whole span below the graph.
+  (D22)
+- **SPARQL mode: the footer and the "Query Types"/"Patterns" buttons now line
+  up with the rest of the page.** The footer ran the full width of the window
+  rather than the 16px content column shared by the editor and graph panels,
+  and YASGUI's snippets bar indented those two buttons 10px past every other
+  row. The footer is now a bordered card on that column, with an even 16px
+  gap on all four sides and its text inset from its own border. (D22)
+
 ## [0.2.0] - 2026-08-07
 
 A performance and user-experience release. No API was removed and no
