@@ -318,7 +318,7 @@
         '    ] .',
       ].join("\n");
 
-      // The query's source of truth is the file `test/influences.rq` (D28):
+      // The query's source of truth is the file `examples/influences.rq` (D28):
       // a query is an artifact - openable, runnable elsewhere, diffable -
       // and keeping only a copy pasted into a <script> would be the same
       // drift trap the cfg: vocabulary exists to avoid. It is fetched below.
@@ -389,7 +389,7 @@
        */
       function loadDefaultQuery() {
         try {
-          return fetch("test/influences.rq", {
+          return fetch("examples/influences.rq", {
             headers: { Accept: "application/sparql-query, text/plain" },
           })
             .then(function (r) {

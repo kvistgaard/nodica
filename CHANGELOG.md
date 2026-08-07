@@ -44,7 +44,7 @@ fills its nodes.
 - `NodicaPlugin#setQuerySettings()` — how a host page passes query-derived
   settings in, since a YASR plugin cannot reach the query itself. (D26)
 - SPARQL mode's default query is now an Enlightenment-influences graph
-  carrying its own image marker, **read from `test/influences.rq`** rather
+  carrying its own image marker, **read from `examples/influences.rq`** rather
   than pasted into the page — edit the file to change the query. An inline
   copy remains as the `file://` fallback, where fetching a sibling file is
   impossible, and a test asserts the two stay byte-identical. Measured cost

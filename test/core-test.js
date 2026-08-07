@@ -453,7 +453,7 @@ function read(rel) {
       fileLines: sampleFile.split("\n").length,
     });
   /* Same guard for SPARQL mode's default query: index.html fetches
-     test/influences.rq, and keeps an inline copy only for file:// where the
+     examples/influences.rq, and keeps an inline copy only for file:// where the
      fetch cannot work. If the two drift, a `file://` visitor silently gets a
      different query from everyone else - including, possibly, one without the
      `# nodica:image` marker (D26/D28). */
@@ -476,11 +476,11 @@ function read(rel) {
   }
   let rqFile = null;
   try {
-    rqFile = fs.readFileSync(path.join(__dirname, "influences.rq"), "utf8")
+    rqFile = fs.readFileSync(path.join(__dirname, "..", "examples", "influences.rq"), "utf8")
       .replace(/\r\n/g, "\n").replace(/\s+$/, "");
   } catch (e) { /* reported below */ }
-  check("test/influences.rq is readable", rqFile !== null);
-  check("DEFAULT_QUERY_INLINE in index.html stays in sync with test/influences.rq",
+  check("examples/influences.rq is readable", rqFile !== null);
+  check("DEFAULT_QUERY_INLINE in index.html stays in sync with examples/influences.rq",
     inlineQuery !== null && rqFile !== null && inlineQuery.replace(/\s+$/, "") === rqFile,
     { inlineLines: inlineQuery && inlineQuery.split("\n").length, fileLines: rqFile && rqFile.split("\n").length });
   check("the default query still carries its # nodica:image marker",

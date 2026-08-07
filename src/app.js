@@ -23,7 +23,7 @@
      Real Wikidata CONSTRUCT output - influences among people born
      1590-1750, the same graph SPARQL mode opens with, so both modes show
      the same thing when nothing else is available. Generated, not
-     hand-written: regenerate with test/influences.rq and copy the result
+     hand-written: regenerate with examples/influences.rq and copy the result
      over both this block and examples/influences.ttl. A test asserts the
      two stay identical, the same way it does for DEFAULT_CONFIG. */
   var SAMPLE_DATA = [

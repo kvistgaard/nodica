@@ -82,7 +82,7 @@ Paste or load any such file in the Configuration panel, adjust settings interact
 
 ## SPARQL queries
 
-**[SPARQL mode →](https://kvistgaard.github.io/nodica)** — `index.html` embeds the [Matdata YASGUI](https://github.com/Matdata-eu/Yasgui) SPARQL editor with Nodica registered as a results view. Run any `CONSTRUCT` or `DESCRIBE` query against any CORS-enabled endpoint and the returned RDF renders as an image-filled graph; `SELECT`/`ASK` results stay with YASGUI's table and response views. It opens on a Wikidata query of who influenced whom among people born 1590–1750 (`test/influences.rq`).
+**[SPARQL mode →](https://kvistgaard.github.io/nodica)** — `index.html` embeds the [Matdata YASGUI](https://github.com/Matdata-eu/Yasgui) SPARQL editor with Nodica registered as a results view. Run any `CONSTRUCT` or `DESCRIBE` query against any CORS-enabled endpoint and the returned RDF renders as an image-filled graph; `SELECT`/`ASK` results stay with YASGUI's table and response views. It opens on a Wikidata query of who influenced whom among people born 1590–1750 (`examples/influences.rq`).
 
 The rendered graph has the same controls as file mode:
 - Properties filter (top-left), 
