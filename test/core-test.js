@@ -452,6 +452,42 @@ function read(rel) {
       embeddedLines: embeddedSample.split("\n").length,
       fileLines: sampleFile.split("\n").length,
     });
+  /* Same guard for SPARQL mode's default query: index.html fetches
+     test/influences.rq, and keeps an inline copy only for file:// where the
+     fetch cannot work. If the two drift, a `file://` visitor silently gets a
+     different query from everyone else - including, possibly, one without the
+     `# nodica:image` marker (D26/D28). */
+  let indexSrc = null;
+  try {
+    indexSrc = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  } catch (e) { /* reported below */ }
+  check("index.html is readable", indexSrc !== null);
+  let inlineQuery = null;
+  if (indexSrc !== null) {
+    const qStart = indexSrc.indexOf("var DEFAULT_QUERY_INLINE = [");
+    const qOpen = indexSrc.indexOf("[", qStart);
+    const qClose = indexSrc.indexOf('].join("\\n");', qOpen);
+    check("DEFAULT_QUERY_INLINE is findable in index.html", qStart !== -1 && qClose !== -1);
+    if (qStart !== -1 && qClose !== -1) {
+      // Evaluate the array literal: the only way to recover the strings with
+      // their quotes and escapes exactly as JavaScript sees them.
+      inlineQuery = new Function("return " + indexSrc.slice(qOpen, qClose + 1))().join("\n");
+    }
+  }
+  let rqFile = null;
+  try {
+    rqFile = fs.readFileSync(path.join(__dirname, "influences.rq"), "utf8")
+      .replace(/\r\n/g, "\n").replace(/\s+$/, "");
+  } catch (e) { /* reported below */ }
+  check("test/influences.rq is readable", rqFile !== null);
+  check("DEFAULT_QUERY_INLINE in index.html stays in sync with test/influences.rq",
+    inlineQuery !== null && rqFile !== null && inlineQuery.replace(/\s+$/, "") === rqFile,
+    { inlineLines: inlineQuery && inlineQuery.split("\n").length, fileLines: rqFile && rqFile.split("\n").length });
+  check("the default query still carries its # nodica:image marker",
+    rqFile !== null &&
+    IG.parseQueryDirectives(rqFile).imageProperty === "http://www.wikidata.org/prop/direct/P18",
+    rqFile === null ? "file missing" : IG.parseQueryDirectives(rqFile));
+
   const sampleParsed = sampleFile === null ? null : await IG.parseRdf(embeddedSample);
   check("the fallback sample parses and has image-bearing nodes",
     sampleParsed !== null && sampleParsed.quads.length > 50 &&

@@ -44,7 +44,12 @@ fills its nodes.
 - `NodicaPlugin#setQuerySettings()` — how a host page passes query-derived
   settings in, since a YASR plugin cannot reach the query itself. (D26)
 - SPARQL mode's default query is now an Enlightenment-influences graph
-  carrying its own image marker. (D26)
+  carrying its own image marker, **read from `test/influences.rq`** rather
+  than pasted into the page — edit the file to change the query. An inline
+  copy remains as the `file://` fallback, where fetching a sibling file is
+  impossible, and a test asserts the two stay byte-identical. Measured cost
+  of the fetch: 5–9 ms, indistinguishable from run-to-run noise end to end.
+  (D26, D28)
 - `test/browser-smoke.mjs` (`npm run test:browser`) — browser regression checks
   for `sparql.html`: footer placement, graph filling its panel, column
   alignment, the Properties filter, layout controls, and button colours,

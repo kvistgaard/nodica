@@ -318,25 +318,33 @@
         '    ] .',
       ].join("\n");
 
-      // Kept as authored (test/influences.rq): pattern order and the label
-      // FILTERs were measured against Wikidata rather than tuned by eye, and
-      // every rewrite tried was equal or worse - hand-ordering the patterns
-      // made no measurable difference (Blazegraph reorders them itself), and
-      // moving the label joins behind a LIMIT subquery, which should have cut
-      // the multiplicative work, timed out at 65s against ~0.8s. See D26.
-      var DEFAULT_QUERY = [
+      // The query's source of truth is the file `test/influences.rq` (D28):
+      // a query is an artifact - openable, runnable elsewhere, diffable -
+      // and keeping only a copy pasted into a <script> would be the same
+      // drift trap the cfg: vocabulary exists to avoid. It is fetched below.
+      //
+      // This inline copy is the `file://` fallback, where fetch cannot reach
+      // a sibling file at all - the identical arrangement settings.ttl and
+      // DEFAULT_CONFIG have had since D10. A test asserts the two match, so
+      // the copy cannot quietly drift from the file.
+      //
+      // Its shape is as authored: pattern order and the label FILTERs were
+      // measured against Wikidata rather than tuned by eye, and every rewrite
+      // tried was equal or worse - hand-ordering the patterns made no
+      // measurable difference (Blazegraph reorders them itself), and moving
+      // the label joins behind a LIMIT subquery, which should have cut the
+      // multiplicative work, timed out at 65s against ~0.8s. See D26.
+      var DEFAULT_QUERY_INLINE = [
         'PREFIX wd:       <http://www.wikidata.org/entity/>',
         'PREFIX wdt:      <http://www.wikidata.org/prop/direct/>',
         'PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>',
         'PREFIX xsd:      <http://www.w3.org/2001/XMLSchema#>',
         'PREFIX wikibase: <http://wikiba.se/ontology#>',
         '',
-        '# Influences among people born in the Enlightenment (1590-1750).',
+        '# Influences among people in the age Enlightenment (1590-1750).',
         '# Nodica draws CONSTRUCT/DESCRIBE results; try your own graph queries.',
         '#',
-        '# The "# nodica:image" marker below tells Nodica which property fills',
-        '# the nodes, so this query renders the same for anyone you share it',
-        '# with - no settings to carry across.',
+        '# The "# nodica:image" marker below tells Nodica which property fills the nodes',
         'CONSTRUCT {',
         '  ?a wdt:P737 ?b .',
         '  ?a wdt:P18 ?aImage .            # nodica:image',
@@ -364,6 +372,51 @@
         'LIMIT 50',
       ].join("\n");
 
+      var DEFAULT_QUERY = DEFAULT_QUERY_INLINE;
+
+      /**
+       * Read the query from its file, falling back to the inline copy.
+       *
+       * Everything below has to wait for this, because YASQE's default value
+       * must be set before the Yasgui instance is constructed. Measured cost
+       * of that wait (same-origin, ~1 KB, and it happens after the 3 MB
+       * bundle has already loaded): the request itself takes **5-9 ms**.
+       * End-to-end editor-ready medians over 5 runs were 1183 ms inline vs
+       * 1233 ms fetched, but the spreads overlap (1134-1297 vs 1134-1332),
+       * so the difference is not distinguishable from run-to-run noise.
+       * A `file://` page rejects the fetch immediately and uses the inline
+       * copy, so opening from disk is not slowed either.
+       */
+      function loadDefaultQuery() {
+        try {
+          return fetch("test/influences.rq", {
+            headers: { Accept: "application/sparql-query, text/plain" },
+          })
+            .then(function (r) {
+              if (!r.ok) throw new Error("HTTP " + r.status);
+              return r.text();
+            })
+            .then(function (text) {
+              text = String(text).replace(/\r\n/g, "\n").replace(/\s+$/, "");
+              // A truncated or wrong file must not replace a working query.
+              if (text === "" || text.indexOf("CONSTRUCT") === -1) {
+                throw new Error("not a CONSTRUCT query");
+              }
+              return text;
+            })
+            .catch(function () { return DEFAULT_QUERY_INLINE; });
+        } catch (e) {
+          // fetch itself can throw synchronously on some file:// engines.
+          return Promise.resolve(DEFAULT_QUERY_INLINE);
+        }
+      }
+
+      loadDefaultQuery().then(function (queryText) {
+        DEFAULT_QUERY = queryText;
+        start();
+      });
+
+      function start() {
       // Static defaults must be set before the Yasgui instance is created.
       // The 5.20.3 bundle registers: Table, Graph, Geo, response, boolean, error.
       var Yasr = Yasgui.Yasr;
@@ -546,6 +599,7 @@
       if (tab && !hasStoredResults(tab) && isUntouchedDemo(tab)) {
         tab.query().catch(function () { /* endpoint hiccup; Run button still works */ });
       }
+      } // end start()
 
       /** True when YASGUI restored a response for this tab (Yasr sets
        *  `results` from storage in its own constructor). */

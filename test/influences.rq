@@ -1,19 +1,20 @@
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wd:       <http://www.wikidata.org/entity/>
+PREFIX wdt:      <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:     <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:      <http://www.w3.org/2001/XMLSchema#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
 
-# Graph of influences in the age of Enlightenment (1590-1750)
-
+# Influences among people in the age Enlightenment (1590-1750).
+# Nodica draws CONSTRUCT/DESCRIBE results; try your own graph queries.
+#
+# The "# nodica:image" marker below tells Nodica which property fills the nodes
 CONSTRUCT {
   ?a wdt:P737 ?b .
-  ?a wdt:P18 ?aImage .
+  ?a wdt:P18 ?aImage .            # nodica:image
   ?b wdt:P18 ?bImage .
   ?a rdfs:label ?aLabel .
   ?b rdfs:label ?bLabel .
-  wdt:P737 rdfs:label ?property_label .
+  wdt:P737 rdfs:label ?propertyLabel .
 }
 WHERE {
   ?a wdt:P31 wd:Q5 ;
@@ -26,9 +27,9 @@ WHERE {
   ?a rdfs:label ?aLabel .
   ?b rdfs:label ?bLabel .
   ?property wikibase:directClaim wdt:P737 ;
-            rdfs:label ?property_label .
-  FILTER (lang(?property_label) = "en")
-  FILTER (lang(?aLabel) = "en")
-  FILTER (lang(?bLabel) = "en")
+            rdfs:label ?propertyLabel .
+  FILTER (LANG(?propertyLabel) = "en")
+  FILTER (LANG(?aLabel) = "en")
+  FILTER (LANG(?bLabel) = "en")
 }
 LIMIT 50
