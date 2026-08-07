@@ -50,8 +50,17 @@ fills its nodes.
   impossible, and a test asserts the two stay byte-identical. Measured cost
   of the fetch: 5–9 ms, indistinguishable from run-to-run noise end to end.
   (D26, D28)
+- `npm run sync:query` (`tools/sync-query.cjs`) — copies `examples/influences.rq`
+  into the inline `file://` fallback in `index.html`, which `npm test` requires
+  to be identical. Edit the query, run this, done. (D28)
+- `test/embed-fixture.html` — a bare YASGUI page containing only what the
+  README tells a third party to write, asserted by `npm run test:browser`. It
+  immediately earned itself: the documented snippet was missing
+  `Yasgui.Yasr.defaults.defaultPlugin = "nodica"`, without which YASR lands on
+  Table and the graph is never drawn. The plugin itself needed no change —
+  it renders, styles and controls itself correctly with no host CSS.
 - `test/browser-smoke.mjs` (`npm run test:browser`) — browser regression checks
-  for `sparql.html`: footer placement, graph filling its panel, column
+  for SPARQL mode: footer placement, graph filling its panel, column
   alignment, the Properties filter, layout controls, and button colours,
   across two viewport sizes, both themes, every results view, **both layout
   orientations, and the returning-user reload path**. Controls are asserted
@@ -59,6 +68,11 @@ fills its nodes.
   in the DOM — presence passed while everything was collapsed to 2px. Each
   assertion corresponds to a defect that reached a user; `npm test` covers the
   DOM-free core only, which is why they were not caught. (D23, D24)
+
+### Removed
+
+- `assets/logo.svg` — unreferenced since D16 replaced it with an inline
+  `currentColor` SVG so the logo would not vanish in dark mode.
 
 ### Changed
 
@@ -97,7 +111,6 @@ fills its nodes.
 - **SPARQL mode: the graph fills the results panel** instead of stopping short
   and leaving blank space above the footer — YASGUI's `.yasrWrapperEl` does
   not grow, capping the panel at its content height. (D23)
-
 - **SPARQL mode: the graph no longer sits at a fixed 560px with dead space
   below the footer on tall viewports.** Its height is now fit to actual
   available space (viewport height minus the graph's rendered top position
