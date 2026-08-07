@@ -1,6 +1,6 @@
 # Nodica
 
-Visualise RDF graphs with image-filled nodes. Query a SPARQL endpoint or load an RDF file. Everything about how the graph looks and behaves is itself expressed in RDF – including, for a query, which property fills the nodes.
+Visualise RDF graphs with image-filled nodes. Query a SPARQL endpoint or load an RDF file. Everything about how the graph looks and behaves is itself expressed in RDF.
 
 **[Use it right away →](https://kvistgaard.github.io/nodica)**
 
@@ -71,7 +71,7 @@ Paste or load any such file in the Configuration panel, adjust settings interact
 | `cfg:nodeOutlineColor`, `cfg:edgeColor`                                   | Colors (CSS values)                                                                       |
 | `cfg:physicsEnabled`                                                      | Force layout active on load                                                               |
 
-**The image property is auto-detected when the configured one matches nothing.** Nodica looks for a property whose values look like images and reports which one it picked – this is what lets an arbitrary SPARQL result render unconfigured. Set the term explicitly when more than one image-ish property is present and you want a specific one.
+**The image property is auto-detected when the configured one has no match – in both modes.** Nodica looks for a property whose values look like images and uses that instead, which is what lets an arbitrary SPARQL result render unconfigured. File mode says so in the status line (naming the property and how many values it matched); SPARQL mode substitutes silently. Set the term explicitly when more than one image-ish property is present and you want a specific one. Order of precedence: a query's `# nodica:image` marker, then the configuration, then auto-detection.
 
 **Edges use the property's own label, if the data has one.** Given `<http://example.org/hasParent> rdfs:label "father"@en .`, edges (and the matching Properties-filter entry) show "father" instead of `ex:hasParent`. `cfg:edgeLabelLanguage` picks which language wins when a property has several, falling back to any other language and then the URI. A predicate-only label triple never spawns a floating node – only real resources do.
 
