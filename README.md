@@ -5,6 +5,9 @@ You can load the graph from a SPARQL endpoint or from an RDF file. Everything ab
 
 **[Use it right away →](https://kvistgaard.github.io/nodica)**
 
+The hosted page uses the main branch so it can be ahead of the latest release. Consult 
+[`CHANGELOG.md`](CHANGELOG.md).
+
 ## Two modes
 
 | | |
@@ -29,7 +32,7 @@ npm install        # once; installs n3 as a dev dependency for tests
 npm run serve      # http://localhost:8090/
 ```
 
-File mode loads `settings.ttl` on startup, preloading the Wikidata uncle-relations demo[^1] (`test/test-uncle-graph.ttl`, `wdt:P18` images; click a node to open its Wikidata page). If that data source can't be loaded, `cfg:fallback cfg:Sample` shows the bundled influences graph instead (`examples/influences.ttl`, which is the same SPARQL mode opens with).
+File mode loads `settings.ttl` on startup, preloading the Wikidata uncle-relations demo[^1] (`examples/uncle-graph.ttl`, `wdt:P18` images; click a node to open its Wikidata page). If that data source can't be loaded, `cfg:fallback cfg:Sample` shows the bundled influences graph instead (`examples/influences.ttl`, which is the same SPARQL mode opens with).
 
 ```bash
 npm test               # core library, no browser needed

@@ -246,10 +246,10 @@ function read(rel) {
     detHeur.detected === true && detHeur.property === "http://x.org/pic", detHeur);
 
   /* ---- uncle graph (real Wikidata CONSTRUCT output, wdt:P18) ------------ */
-  console.log("uncle graph (test-uncle-graph.ttl)");
+  console.log("uncle graph (examples/uncle-graph.ttl)");
   let uncleText = null;
   try {
-    uncleText = read("test/test-uncle-graph.ttl");
+    uncleText = read("examples/uncle-graph.ttl");
   } catch (e) {
     console.log("  (file not found - skipping)");
   }
@@ -289,11 +289,11 @@ function read(rel) {
   console.log("cfg:dataSource");
   const dsCfg = await IG.parseConfig(
     '@prefix cfg: <https://kvistgaard.github.io/config#> .\n' +
-    '<#c> a cfg:Configuration ; cfg:dataSource <test/test-uncle-graph.ttl> .',
+    '<#c> a cfg:Configuration ; cfg:dataSource <examples/uncle-graph.ttl> .',
     { baseIRI: "http://host/index.html" }
   );
   check("relative dataSource resolved against baseIRI",
-    dsCfg.dataSource === "http://host/test/test-uncle-graph.ttl", dsCfg.dataSource);
+    dsCfg.dataSource === "http://host/examples/uncle-graph.ttl", dsCfg.dataSource);
   const dsTtl = IG.configToTurtle(IG.mergeSettings({ dataSource: "http://host/data.ttl" }));
   const dsRound = await IG.parseConfig(dsTtl);
   check("dataSource round-trips through export", dsRound.dataSource === "http://host/data.ttl", dsRound.dataSource);
@@ -326,7 +326,7 @@ function read(rel) {
 
   // the actual deployment settings file must parse and be complete
   const deploy = await IG.parseConfig(read("settings.ttl"), { baseIRI: "http://host/settings.ttl" });
-  check("deployment config: dataSource resolves", deploy.dataSource === "http://host/test/test-uncle-graph.ttl", deploy.dataSource);
+  check("deployment config: dataSource resolves", deploy.dataSource === "http://host/examples/uncle-graph.ttl", deploy.dataSource);
   check("deployment config: fallback Sample", deploy.fallback === IG.CFG_NS + "Sample", deploy.fallback);
   check("deployment config: dereference rule present",
     Array.isArray(deploy.dereferenceRules) && deploy.dereferenceRules.length === 1, deploy.dereferenceRules);

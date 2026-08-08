@@ -327,7 +327,7 @@
     '',
     '<#deployment> a cfg:Configuration ;',
     '    rdfs:label "Nodica deployment settings"@en ;',
-    '    cfg:dataSource         <test/test-uncle-graph.ttl> ;',
+    '    cfg:dataSource         <examples/uncle-graph.ttl> ;',
     '    cfg:fallback           cfg:Sample ;',
     '    cfg:settingsLocked     false ;',
     '    cfg:dereferenceRule    [ cfg:uriPrefix "http://www.wikidata.org/entity/" ;',

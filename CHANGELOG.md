@@ -11,6 +11,21 @@ Entries cite the decision that explains them (`D20`, …). The decisions live in
 
 ## [Unreleased]
 
+### Changed
+
+- **The uncle-relations demo is labelled.** It carried
+  no `rdfs:label` at all, so file mode's default graph showed `wd:Q199484` on
+  every node and `ex:hasUncle` on every edge. It now has an English label for
+  each of its 194 entities (from the Wikidata API) and one on the predicate,
+  so the graph reads as names and "has uncle". The predicate label adds no
+  node, since that URI is used only as a predicate (D17). This is the dataset
+  D18 flagged as a poor demonstration.
+- **`test/test-uncle-graph.ttl` moved to `examples/uncle-graph.ttl`.** It is
+  file mode's shipped default dataset, not a test fixture – the same reasoning
+  that moved the default SPARQL query out of `test/` in 0.3.0 (D28). Anyone
+  running a fork with a customised `settings.ttl` that points at the old path
+  needs to update `cfg:dataSource`.
+
 ## [0.4.0] - 2026-08-08
 
 The first version published as a GitHub release. Earlier versions exist as

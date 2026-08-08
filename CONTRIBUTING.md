@@ -11,7 +11,7 @@ settings.ttl           Operator deployment settings (D10)
 vocab/config-ontology.ttl  cfg: vocabulary
 test/core-test.js      Node.js test harness (no browser)
 examples/              Demo data and configs
-test/test-uncle-graph.ttl  Real Wikidata data used as the default dataset
+examples/uncle-graph.ttl  Real Wikidata data used as the default dataset
 ```
 
 ### Core library (`src/nodica.js`)

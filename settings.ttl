@@ -19,7 +19,7 @@
 
 <#deployment> a cfg:Configuration ;
     rdfs:label "Nodica deployment settings"@en ;
-    cfg:dataSource         <test/test-uncle-graph.ttl> ;
+    cfg:dataSource         <examples/uncle-graph.ttl> ;
     cfg:fallback           cfg:Sample ;
     cfg:settingsLocked     false ;
     # Clicking a node opens the entity (D11). Longest matching prefix wins;
@@ -35,7 +35,7 @@
     cfg:edgeWidth          4 ;
     cfg:nodeLabelFontSize  20 ;
     cfg:edgeLabelFontSize  20 ;
-    cfg:nodeLabelDistance  10 ;
+    cfg:nodeLabelDistance  5 ;
     cfg:nodeOutlineColor   "#2b7ce9" ;
     cfg:edgeColor          "#888888" ;
     cfg:physicsEnabled     true .

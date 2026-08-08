@@ -664,3 +664,205 @@ wd:Q7758 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Sir%20Thoma
 wd:Q178799 ex:hasUncle wd:Q227978 .
 
 wd:Q227978 wdt:P18 <http://commons.wikimedia.org/wiki/Special:FilePath/Bari%20Exultet%20roll%201%20-%20emperors%20and%20pope%20%28pope1%29%20%28cropped%29.jpg> .
+
+# Edge label for the relation (D17): Nodica labels an edge from the
+# predicate URI's own label, so this renders as "has uncle" instead of
+# the shortened URI. It adds no node - the URI is used only as a predicate.
+ex:hasUncle rdfs:label "has uncle"@en .
+
+# Node labels. Without these the graph shows shortened URIs (wd:Q199484).
+# English labels for the 194 entities, from the Wikidata API.
+wd:Q199484 rdfs:label "Mustafa III"@en .
+wd:Q199659 rdfs:label "Mustafa II"@en .
+wd:Q199660 rdfs:label "Ahmed II"@en .
+wd:Q81000 rdfs:label "Richard II of England"@en .
+wd:Q193752 rdfs:label "John of Gaunt"@en .
+wd:Q199830 rdfs:label "Mustafa IV"@en .
+wd:Q175138 rdfs:label "Batu Khan"@en .
+wd:Q7517 rdfs:label "Tolui"@en .
+wd:Q160311 rdfs:label "Henry III of England"@en .
+wd:Q235238 rdfs:label "Henry the Young King"@en .
+wd:Q1411 rdfs:label "Claudius"@en .
+wd:Q1407 rdfs:label "Tiberius"@en .
+wd:Q122366 rdfs:label "Daniel Bernoulli"@en .
+wd:Q122392 rdfs:label "Jacob Bernoulli"@en .
+wd:Q203768 rdfs:label "Abdülmecid II"@en .
+wd:Q174772 rdfs:label "Abdülmecid I"@en .
+wd:Q150862 rdfs:label "Maximilian II, Holy Roman Emperor"@en .
+wd:Q32500 rdfs:label "Charles V"@en .
+wd:Q207953 rdfs:label "Elizabeth of York"@en .
+wd:Q133028 rdfs:label "Richard III of England"@en .
+wd:Q150599 rdfs:label "Ferdinand II, Holy Roman Emperor"@en .
+wd:Q152229 rdfs:label "Friedrich Wilhelm II of Prussia"@en .
+wd:Q33550 rdfs:label "Frederick II of Prussia"@en .
+wd:Q170470 rdfs:label "Edward V of England"@en .
+wd:Q170514 rdfs:label "Mehmed IV"@en .
+wd:Q172056 rdfs:label "Osman II"@en .
+wd:Q80976 rdfs:label "Prince Philip, Duke of Edinburgh"@en .
+wd:Q152099 rdfs:label "Constantine I of Greece"@en .
+wd:Q170707 rdfs:label "Abdul Hamid I"@en .
+wd:Q199827 rdfs:label "Murad V"@en .
+wd:Q151500 rdfs:label "Abdülaziz"@en .
+wd:Q174762 rdfs:label "Murad IV"@en .
+wd:Q172061 rdfs:label "Suleiman II"@en .
+wd:Q199481 rdfs:label "Mahmud I"@en .
+wd:Q199482 rdfs:label "Ahmed III"@en .
+wd:Q199825 rdfs:label "Osman III"@en .
+wd:Q51068 rdfs:label "Charles I of Austria"@en .
+wd:Q43063 rdfs:label "Archduke Franz Ferdinand of Austria"@en .
+wd:Q83171 rdfs:label "Alexander II of Russia"@en .
+wd:Q15193 rdfs:label "Alexander I of Russia"@en .
+wd:Q162543 rdfs:label "Mehmed VI"@en .
+wd:Q150642 rdfs:label "Victor Emmanuel III of Italy"@en .
+wd:Q32432 rdfs:label "Amadeo I of Spain"@en .
+wd:Q192925 rdfs:label "Edgar of England"@en .
+wd:Q170017 rdfs:label "Æthelstan"@en .
+wd:Q188684 rdfs:label "Edmund II of England"@en .
+wd:Q192920 rdfs:label "Edward the Martyr"@en .
+wd:Q134817 rdfs:label "Abdul Hamid II"@en .
+wd:Q174791 rdfs:label "Mahmud II"@en .
+wd:Q191039 rdfs:label "Germanicus"@en .
+wd:Q215204 rdfs:label "Louis II of Italy"@en .
+wd:Q152463 rdfs:label "Louis the German"@en .
+wd:Q314978 rdfs:label "Ali ibn al-Husayn Zayn al-'Abidin"@en .
+wd:Q182914 rdfs:label "Hasan ibn Ali"@en .
+wd:Q160353 rdfs:label "Theodosius II"@en .
+wd:Q159798 rdfs:label "Honorius"@en .
+wd:Q84192 rdfs:label "Maximilian I of Mexico"@en .
+wd:Q183579 rdfs:label "Ferdinand I of Austria"@en .
+wd:Q160165 rdfs:label "Anna I of Russia"@en .
+wd:Q8479 rdfs:label "Peter the Great"@en .
+wd:Q157092 rdfs:label "Louis II, King of Hungary, Croatia and Bohemia"@en .
+wd:Q54056 rdfs:label "Sigismund I the Old"@en .
+wd:Q130005 rdfs:label "Edward the Confessor"@en .
+wd:Q168776 rdfs:label "Ibrahim I"@en .
+wd:Q174798 rdfs:label "Mustafa I"@en .
+wd:Q9439 rdfs:label "Victoria"@en .
+wd:Q130586 rdfs:label "George IV of the United Kingdom"@en .
+wd:Q130822 rdfs:label "William IV"@en .
+wd:Q154927 rdfs:label "Haakon VII of Norway"@en .
+wd:Q17142 rdfs:label "George I of Greece"@en .
+wd:Q156548 rdfs:label "Queen Sofía of Spain"@en .
+wd:Q151742 rdfs:label "Alexander of Greece"@en .
+wd:Q152935 rdfs:label "George II of Greece"@en .
+wd:Q127318 rdfs:label "George III of Great Britain"@en .
+wd:Q131981 rdfs:label "George II of Great Britain"@en .
+wd:Q42305 rdfs:label "Richard I of England"@en .
+wd:Q487543 rdfs:label "Chagatai Khan"@en .
+wd:Q71231 rdfs:label "Charles the Bald"@en .
+wd:Q150712 rdfs:label "Charles the Fat"@en .
+wd:Q150735 rdfs:label "Lothair I"@en .
+wd:Q183085 rdfs:label "Isabella II of Spain"@en .
+wd:Q183226 rdfs:label "Charles IV of Spain"@en .
+wd:Q151312 rdfs:label "Frederik IX of Denmark"@en .
+wd:Q156617 rdfs:label "Christian X of Denmark"@en .
+wd:Q151773 rdfs:label "Constantine II of Greece"@en .
+wd:Q186256 rdfs:label "Ferdinand VII of Spain"@en .
+wd:Q312325 rdfs:label "Ferdinand I of the Two Sicilies"@en .
+wd:Q185152 rdfs:label "Puyi"@en .
+wd:Q299710 rdfs:label "Guangxu Emperor"@en .
+wd:Q154936 rdfs:label "Arnulf of Carinthia"@en .
+wd:Q130812 rdfs:label "Mary II of England"@en .
+wd:Q122553 rdfs:label "Charles II of England"@en .
+wd:Q154912 rdfs:label "Olav V of Norway"@en .
+wd:Q58600 rdfs:label "Frederick III, German Emperor"@en .
+wd:Q57180 rdfs:label "Frederick William IV of Prussia"@en .
+wd:Q130834 rdfs:label "Francis II, Holy Roman Emperor"@en .
+wd:Q76555 rdfs:label "Joseph II, Holy Roman Emperor"@en .
+wd:Q7519 rdfs:label "Ögedei Khan"@en .
+wd:Q131706 rdfs:label "Maria Theresa of Austria"@en .
+wd:Q152480 rdfs:label "Joseph I, Holy Roman Emperor"@en .
+wd:Q193658 rdfs:label "Louis IV of France"@en .
+wd:Q192846 rdfs:label "Carloman II of France"@en .
+wd:Q193112 rdfs:label "Louis III of France"@en .
+wd:Q119702 rdfs:label "Anne of Great Britain"@en .
+wd:Q151494 rdfs:label "Mehmed V"@en .
+wd:Q51056 rdfs:label "Franz Joseph I of Austria"@en .
+wd:Q184868 rdfs:label "Feodor III of Russia"@en .
+wd:Q199633 rdfs:label "Selim III"@en .
+wd:Q43974 rdfs:label "Louis the Pious"@en .
+wd:Q191003 rdfs:label "Carloman I"@en .
+wd:Q230303 rdfs:label "Caroline Kennedy"@en .
+wd:Q134549 rdfs:label "Ted Kennedy"@en .
+wd:Q152245 rdfs:label "Prince Albert of Saxe-Coburg and Gotha"@en .
+wd:Q12971 rdfs:label "Leopold I of Belgium"@en .
+wd:Q155004 rdfs:label "Philippe of Belgium"@en .
+wd:Q12976 rdfs:label "Baudouin I of Belgium"@en .
+wd:Q52940 rdfs:label "Sigismund III Vasa"@en .
+wd:Q52939 rdfs:label "Charles IX of Sweden"@en .
+wd:Q1465751 rdfs:label "Louis Antoine, Duke of Angoulême"@en .
+wd:Q7732 rdfs:label "Louis XVI of France"@en .
+wd:Q18002970 rdfs:label "Princess Charlotte of Wales"@en .
+wd:Q152316 rdfs:label "Prince Harry, Duke of Sussex"@en .
+wd:Q49765 rdfs:label "Louis XVII of France"@en .
+wd:Q7750 rdfs:label "Louis XVIII of France"@en .
+wd:Q52890 rdfs:label "Gustaf V of Sweden"@en .
+wd:Q52925 rdfs:label "Carl XV of Sweden"@en .
+wd:Q7520 rdfs:label "Güyük Khan"@en .
+wd:Q186581 rdfs:label "Jochi"@en .
+wd:Q182070 rdfs:label "Maxentius"@en .
+wd:Q43107 rdfs:label "Diocletian"@en .
+wd:Q7521 rdfs:label "Möngke Khan"@en .
+wd:Q8404 rdfs:label "John I of France"@en .
+wd:Q174964 rdfs:label "Charles IV of France"@en .
+wd:Q44039 rdfs:label "Ludwig II of Bavaria"@en .
+wd:Q77067 rdfs:label "Otto of Greece"@en .
+wd:Q52945 rdfs:label "Eric XIV of Sweden"@en .
+wd:Q36812 rdfs:label "William, Prince of Wales"@en .
+wd:Q153330 rdfs:label "Andrew Mountbatten-Windsor"@en .
+wd:Q46846 rdfs:label "Valentinian II"@en .
+wd:Q172471 rdfs:label "Valens"@en .
+wd:Q41613 rdfs:label "Constans II"@en .
+wd:Q31513 rdfs:label "Heraklonas"@en .
+wd:Q1352872 rdfs:label "Robert F. Kennedy Jr."@en .
+wd:Q9696 rdfs:label "John F. Kennedy"@en .
+wd:Q52929 rdfs:label "Gustav IV Adolf of Sweden"@en .
+wd:Q52928 rdfs:label "Charles XIII of Sweden"@en .
+wd:Q172203 rdfs:label "Philip III of France"@en .
+wd:Q203829 rdfs:label "Charles I of Naples"@en .
+wd:Q131195 rdfs:label "Constantius Chlorus"@en .
+wd:Q38668629 rdfs:label "Prince Louis of Wales"@en .
+wd:Q54053 rdfs:label "Władysław III of Poland"@en .
+wd:Q193157 rdfs:label "Ferdinand VI of Spain"@en .
+wd:Q41659 rdfs:label "Zoe Porphyrogenita"@en .
+wd:Q41833 rdfs:label "Basil II"@en .
+wd:Q150872 rdfs:label "Empress Matilda"@en .
+wd:Q102005 rdfs:label "William II of England"@en .
+wd:Q177320 rdfs:label "Hulegu Khan"@en .
+wd:Q13590412 rdfs:label "Prince George of Wales"@en .
+wd:Q7523 rdfs:label "Kublai Khan"@en .
+wd:Q1413 rdfs:label "Nero"@en .
+wd:Q1762 rdfs:label "Elagabalus"@en .
+wd:Q183089 rdfs:label "Geta"@en .
+wd:Q154920 rdfs:label "Prince Edward, Duke of Edinburgh"@en .
+wd:Q1769 rdfs:label "Severus Alexander"@en .
+wd:Q9458 rdfs:label "Muhammad"@en .
+wd:Q293599 rdfs:label "Abbas ibn Abd al-Muttalib"@en .
+wd:Q212457 rdfs:label "Louis I of Spain"@en .
+wd:Q25310 rdfs:label "Robert F. Kennedy"@en .
+wd:Q182840 rdfs:label "Louis the Stammerer"@en .
+wd:Q152756 rdfs:label "Frederik VIII of Denmark"@en .
+wd:Q7723 rdfs:label "Napoleon II"@en .
+wd:Q7726 rdfs:label "Joseph Bonaparte"@en .
+wd:Q52938 rdfs:label "Gustavus Adolphus of Sweden"@en .
+wd:Q52944 rdfs:label "John III of Sweden"@en .
+wd:Q34417 rdfs:label "Philip II of Spain"@en .
+wd:Q150611 rdfs:label "Ferdinand I, Holy Roman Emperor"@en .
+wd:Q7729 rdfs:label "Louis Bonaparte"@en .
+wd:Q77087 rdfs:label "Klaus Mann"@en .
+wd:Q76480 rdfs:label "Heinrich Mann"@en .
+wd:Q130752 rdfs:label "Elizabeth I of Russia"@en .
+wd:Q183698 rdfs:label "Ivan V of Russia"@en .
+wd:Q189108 rdfs:label "Gratian"@en .
+wd:Q7721 rdfs:label "Napoleon III"@en .
+wd:Q46768 rdfs:label "Maximian"@en .
+wd:Q8433 rdfs:label "Philip V of France"@en .
+wd:Q37069 rdfs:label "Alexios IV Angelos"@en .
+wd:Q37065 rdfs:label "Alexios III Angelos"@en .
+wd:Q172168 rdfs:label "Galerius"@en .
+wd:Q152923 rdfs:label "Rudolf, Crown Prince of Austria"@en .
+wd:Q178799 rdfs:label "Benedict IX"@en .
+wd:Q162102 rdfs:label "Benedict VIII"@en .
+wd:Q517 rdfs:label "Napoleon"@en .
+wd:Q7758 rdfs:label "Charles X of France"@en .
+wd:Q227978 rdfs:label "John XIX"@en .
