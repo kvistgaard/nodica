@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nodica in upstream Triply YASGUI</title>
+  <!--
+    The same fixture as embed-fixture.html, against UPSTREAM Triply YASGUI
+    (4.2.28) instead of the Matdata fork (5.20.3) this repo ships with.
+    It exists so "works in any YASGUI deployment" is evidenced on two
+    independent codebases rather than on the one fork we happen to embed.
+    The plugin touches five API points - registerPlugin, results
+    .getOriginalResponseAsString(), .getContentType(), resultsEl and
+    config.plugins.nodica - and this proves all five exist in both.
+
+    Note the forks name their built-ins differently (Triply: table, boolean,
+    response, error; Matdata adds Geo and Graph, capitalised). That affects a
+    host's pluginOrder, never the plugin.
+  -->
+  <link rel="stylesheet" href="https://unpkg.com/@triply/yasgui@4.2.28/build/yasgui.min.css">
+  <script src="https://unpkg.com/@triply/yasgui@4.2.28/build/yasgui.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/n3@1.17.4/browser/n3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  <script src="../src/nodica.js"></script>
+  <script src="../src/nodica-yasr-plugin.js"></script>
+</head>
+<body>
+  <div id="yasgui"></div>
+  <script>
+    // Exactly the snippet the README shows, nothing else.
+    // Make Nodica the view you land on. Without this YASR selects Table and
+    // the graph is only reached by clicking the tab - verified, and the
+    // reason this line is in the README at all.
+    Yasgui.Yasr.defaults.defaultPlugin = "nodica";
+    Yasgui.Yasr.defaults.plugins.nodica = {
+      enabled: true,
+      dynamicConfig: {
+        configTurtle: "@prefix cfg: <https://kvistgaard.github.io/config#> .\n" +
+          "<#c> a cfg:Configuration ; cfg:imageProperty <http://www.wikidata.org/prop/direct/P18> .",
+        height: "560px"
+      }
+    };
+    var yasgui = new Yasgui(document.getElementById("yasgui"), {
+      requestConfig: {
+        endpoint: "https://query.wikidata.org/sparql",
+        acceptHeaderGraph: "text/turtle"
+      }
+    });
+    yasgui.getTab().setQuery(
+      "PREFIX wdt: <http://www.wikidata.org/prop/direct/>\n" +
+      "CONSTRUCT { ?a wdt:P737 ?b . ?a wdt:P18 ?i } WHERE { ?a wdt:P737 ?b . ?a wdt:P18 ?i }"
+    );
+    yasgui.getTab().query();
+  </script>
+</body>
+</html>

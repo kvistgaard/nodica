@@ -393,9 +393,18 @@ for (const theme of ['light', 'dark']) {
  * third-party page. test/embed-fixture.html contains ONLY what the README
  * tells a third party to write. Checking it caught a real omission: without
  * `defaultPlugin`, YASR lands on Table and the graph is never drawn.
+ *
+ * Run against BOTH YASGUI lineages: the Matdata fork this repo embeds and
+ * upstream Triply. "Any YASGUI deployment" is otherwise an inductive leap
+ * from the single fork we happen to ship, and the two name their built-in
+ * plugins differently, so a host-side assumption could pass on one and fail
+ * on the other.
  * ---------------------------------------------------------------------- */
-{
-  const scenario = 'bare YASGUI embed (README snippet)'
+for (const [fixture, forkLabel] of [
+  ['test/embed-fixture.html', 'Matdata fork 5.20.3'],
+  ['test/embed-fixture-triply.html', 'upstream Triply 4.2.28'],
+]) {
+  const scenario = `bare YASGUI embed (${forkLabel})`
   console.log(`\n${scenario}`)
   const ctx = await browser.newContext({ locale: 'en-US', viewport: { width: 1400, height: 900 } })
   const page = await ctx.newPage()
@@ -409,7 +418,7 @@ for (const theme of ['light', 'dark']) {
   })
   await stubEndpoint(page)
   try {
-    await page.goto(URL.replace(/\/[^/]*$/, '/') + 'test/embed-fixture.html', { waitUntil: 'domcontentloaded' })
+    await page.goto(URL.replace(/\/[^/]*$/, '/') + fixture, { waitUntil: 'domcontentloaded' })
     await page.waitForSelector('.nodica-yasr-canvas', { timeout: 30000 })
   } catch { /* handled by the assertions below */ }
   await page.waitForTimeout(2500)

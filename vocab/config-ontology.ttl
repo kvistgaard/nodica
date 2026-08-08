@@ -18,7 +18,7 @@
     vann:preferredNamespaceUri "https://kvistgaard.github.io/config#" ;
     dcterms:creator <https://github.com/kvistgaard> ;
     dcterms:created "2026-06-12"^^xsd:date ;
-    owl:versionInfo "0.4.0" .
+    owl:versionInfo "0.5.0" .
 
 #################################################################
 # Classes
@@ -45,7 +45,7 @@ cfg:imageProperty
 cfg:labelProperty
     a owl:ObjectProperty ;
     rdfs:label "label property"@en ;
-    rdfs:comment "The RDF property whose object supplies the node label. Defaults to rdfs:label."@en ;
+    rdfs:comment "The RDF property whose object supplies node and edge labels. When set, it ranks first; any subject it does not cover falls back through rdfs:label, skos:prefLabel, schema:name, dcterms:title and foaf:name, in that order, resolved per subject. Defaults to rdfs:label."@en ;
     rdfs:domain cfg:Configuration ;
     rdfs:range rdf:Property ;
     rdfs:isDefinedBy <https://kvistgaard.github.io/config> .

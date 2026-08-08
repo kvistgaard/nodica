@@ -397,6 +397,37 @@
     return normalizeIri(a) === normalizeIri(b);
   }
 
+  /**
+   * Well-known label properties, in fallback order (D30). The configured
+   * cfg:labelProperty always ranks first; any subject it misses falls
+   * through this sequence. Exported (like LIMITS) so hosts can show or
+   * document the order without hardcoding a copy.
+   */
+  var LABEL_CASCADE = [
+    "http://www.w3.org/2000/01/rdf-schema#label",
+    "http://www.w3.org/2004/02/skos/core#prefLabel",
+    "https://schema.org/name",
+    "http://purl.org/dc/terms/title",
+    "http://xmlns.com/foaf/0.1/name",
+  ];
+
+  /**
+   * Precedence map for label predicates: configured property -> 0, then the
+   * cascade in order. Built once per buildModel and consulted with one hash
+   * lookup per quad, so the cascade costs the same as the single comparison
+   * it replaces (the makeShortener lesson, D20). Keys are normalized IRIs;
+   * look up with normalizeIri() so both schema.org forms match. Null
+   * prototype, so inherited names like "constructor" cannot read as hits.
+   */
+  function makeLabelRank(configured) {
+    var rank = Object.create(null);
+    if (configured) rank[normalizeIri(configured)] = 0;
+    for (var i = 0; i < LABEL_CASCADE.length; i++) {
+      if (!(LABEL_CASCADE[i] in rank)) rank[LABEL_CASCADE[i]] = i + 1;
+    }
+    return rank;
+  }
+
   /** Well-known image properties, in preference order, for auto-detection. */
   var IMAGE_PROPERTY_CANDIDATES = [
     "https://schema.org/image",
@@ -667,10 +698,10 @@
     var seen = {}; // s|p|o -> true, for cross-graph dedup
     var triples = [];
 
-    // Candidate labels for predicate URIs (labelProperty triples whose
-    // subject happens to be used elsewhere as a predicate): uri -> { byLang,
-    // noLang, first }, resolved into edge/predicate labels after pass 1 once
-    // every triple - and thus every actually-used predicate - is known.
+    // Candidate labels for predicate URIs (label-cascade triples whose
+    // subject happens to be used elsewhere as a predicate): uri -> { rank,
+    // byLang, noLang, first }, resolved into edge/predicate labels after
+    // pass 1 once every triple - and thus every used predicate - is known.
     var propertyLabelCandidates = {};
 
     // Every URI used as a predicate anywhere in the input, known upfront so
@@ -684,9 +715,16 @@
       return term.termType === "BlankNode" ? "_:" + term.value : term.value;
     }
 
-    function recordPropertyLabelCandidate(uri, term) {
+    /**
+     * Rank-aware candidate recording (D30): a lower-ranked label property
+     * replaces everything a higher-ranked one collected; within one rank the
+     * D17 language bookkeeping applies unchanged.
+     */
+    function recordPropertyLabelCandidate(uri, term, rank) {
       if (term.termType !== "Literal") return;
-      var c = propertyLabelCandidates[uri] || (propertyLabelCandidates[uri] = { byLang: {} });
+      var c = propertyLabelCandidates[uri];
+      if (!c || rank < c.rank) c = propertyLabelCandidates[uri] = { rank: rank, byLang: {} };
+      else if (rank > c.rank) return;
       var lang = (term.language || "").toLowerCase();
       if (lang) {
         if (!(lang in c.byLang)) c.byLang[lang] = term.value;
@@ -695,6 +733,13 @@
       }
       if (c.first === undefined) c.first = term.value;
     }
+
+    // Label precedence (D30): configured property first, then the cascade.
+    // One O(1) lookup per quad; labelRanks remembers which rank produced each
+    // node's label so a better-ranked triple later in the input replaces it,
+    // while an equal rank keeps the first value seen (D6 first-wins).
+    var labelRank = makeLabelRank(s.labelProperty);
+    var labelRanks = {};
 
     // Pass 1: dedupe across graphs, collect consumed (image/label) triples.
     for (var i = 0; i < quads.length; i++) {
@@ -709,9 +754,13 @@
         consumedSubjects[sid] = q.subject;
         continue; // consumed
       }
-      if (samePredicate(q.predicate.value, s.labelProperty)) {
-        if (!(sid in labels)) labels[sid] = q.object.value;
-        recordPropertyLabelCandidate(sid, q.object);
+      var rank = labelRank[normalizeIri(q.predicate.value)];
+      if (rank !== undefined) {
+        if (!(sid in labels) || rank < labelRanks[sid]) {
+          labels[sid] = q.object.value;
+          labelRanks[sid] = rank;
+        }
+        recordPropertyLabelCandidate(sid, q.object, rank);
         // A URI used only as a predicate shouldn't get a node of its own
         // just because it has a label; a URI that's also a real resource
         // (subject/object elsewhere) still gets one, via consumedSubjects
@@ -1146,6 +1195,7 @@
     escapeHtml: escapeHtml,
     configToTurtle: configToTurtle,
     detectImageProperty: detectImageProperty,
+    LABEL_CASCADE: LABEL_CASCADE,
     parseQueryDirectives: parseQueryDirectives,
     resolveEntityUrl: resolveEntityUrl,
     normalizeImageUrl: normalizeImageUrl,

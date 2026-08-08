@@ -11,67 +11,78 @@ Entries cite the decision that explains them (`D20`, …). The decisions live in
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Label fallback cascade.** When `cfg:labelProperty` has no value for a
+  subject, Nodica now falls back through `rdfs:label`, `skos:prefLabel`,
+  `schema:name` (both http and https forms), `dcterms:title` and `foaf:name`,
+  resolved per subject; the configured property still wins wherever it is
+  present. Data labelled with any of these renders named nodes and edges with
+  no configuration. Measured cost: none (buildModel median 1.68 ms before,
+  1.32 ms after, on the 379-quad demo graph). The order ships as
+  `Nodica.LABEL_CASCADE`. One visible change: a subject carrying two label
+  properties no longer sprouts a literal box for the losing one - both
+  triples count as labels. (D30)
 
 ## [0.3.0] - 2026-08-07
 
 SPARQL mode becomes the front door, and a query can now say which property
 fills its nodes.
 
-### Changed — action may be required
+### Changed – action may be required
 
 - **SPARQL mode is now `index.html`; file mode moved to `file-mode.html`.**
   The bare deployment URL opens the query editor. **A bookmark or link to
-  `sparql.html` will 404** — use the site root instead; links to `index.html`
+  `sparql.html` will 404** – use the site root instead; links to `index.html`
   meaning file mode now land on SPARQL mode. The two pages link to each other
   from their headers. (D27)
 - **File mode's built-in fallback sample is the Enlightenment-influences
   graph** (`examples/influences.ttl`, real Wikidata output) instead of the
   synthetic scientists set, so both modes show the same graph when nothing
-  else is available. `cfg:dataSource` is unchanged — file mode still opens on
+  else is available. `cfg:dataSource` is unchanged – file mode still opens on
   the uncle-relations graph when it can be fetched. The scientists files moved
   from `examples/` to `test/`, where they remain as test fixtures. (D27)
 
 ### Added
 
-- **`# nodica:image` — choose the image property from inside the SPARQL
+- **`# nodica:image` – choose the image property from inside the SPARQL
   query.** Mark the property on the line where it is used and the query
   carries its own presentation, so sharing the query reproduces the graph;
   `# nodica:image wdt:P18` names it explicitly. Parsed by
   `Nodica.parseQueryDirectives()` (new, in the core), merged over the page
   config and sanitized as user-level input so a pasted query cannot set
   operator-only terms. (D26)
-- `NodicaPlugin#setQuerySettings()` — how a host page passes query-derived
+- `NodicaPlugin#setQuerySettings()` – how a host page passes query-derived
   settings in, since a YASR plugin cannot reach the query itself. (D26)
 - SPARQL mode's default query is now an Enlightenment-influences graph
   carrying its own image marker, **read from `examples/influences.rq`** rather
-  than pasted into the page — edit the file to change the query. An inline
+  than pasted into the page – edit the file to change the query. An inline
   copy remains as the `file://` fallback, where fetching a sibling file is
   impossible, and a test asserts the two stay byte-identical. Measured cost
   of the fetch: 5–9 ms, indistinguishable from run-to-run noise end to end.
   (D26, D28)
-- `npm run sync:query` (`tools/sync-query.cjs`) — copies `examples/influences.rq`
+- `npm run sync:query` (`tools/sync-query.cjs`) – copies `examples/influences.rq`
   into the inline `file://` fallback in `index.html`, which `npm test` requires
   to be identical. Edit the query, run this, done. (D28)
-- `test/embed-fixture.html` — a bare YASGUI page containing only what the
+- `test/embed-fixture.html` – a bare YASGUI page containing only what the
   README tells a third party to write, asserted by `npm run test:browser`. It
   immediately earned itself: the documented snippet was missing
   `Yasgui.Yasr.defaults.defaultPlugin = "nodica"`, without which YASR lands on
-  Table and the graph is never drawn. The plugin itself needed no change —
+  Table and the graph is never drawn. The plugin itself needed no change –
   it renders, styles and controls itself correctly with no host CSS.
-- `test/browser-smoke.mjs` (`npm run test:browser`) — browser regression checks
+- `test/browser-smoke.mjs` (`npm run test:browser`) – browser regression checks
   for SPARQL mode: footer placement, graph filling its panel, column
   alignment, the Properties filter, layout controls, and button colours,
   across two viewport sizes, both themes, every results view, **both layout
   orientations, and the returning-user reload path**. Controls are asserted
   *visible at their screen position* (`elementFromPoint`), not merely present
-  in the DOM — presence passed while everything was collapsed to 2px. Each
+  in the DOM – presence passed while everything was collapsed to 2px. Each
   assertion corresponds to a defect that reached a user; `npm test` covers the
   DOM-free core only, which is why they were not caught. (D23, D24)
 
 ### Removed
 
-- `assets/logo.svg` — unreferenced since D16 replaced it with an inline
+- `assets/logo.svg` – unreferenced since D16 replaced it with an inline
   `currentColor` SVG so the logo would not vanish in dark mode.
 
 ### Changed
@@ -86,37 +97,37 @@ fills its nodes.
   instead of two.** A `max-height` added in 0.2.x silently overrode the inline
   height YASQE's drag grip writes, so the grip did nothing; the `overflow-y`
   beside it stacked a second native scrollbar on CodeMirror's own. Both are
-  gone — the editor was never auto-growing and never lacked a scroller, which
+  gone – the editor was never auto-growing and never lacked a scroller, which
   was the premise they were added on. Its starting height is now fitted to the
   window instead, and left alone entirely once you drag it. (D25)
 - **SPARQL mode: the graph no longer disappears on short windows.** The
   results pane could collapse to zero height, which also hid the fact that
-  anything was wrong — the page reported no overflow. It now keeps a floor.
+  anything was wrong – the page reported no overflow. It now keeps a floor.
   (D25)
 - **SPARQL mode: Horizontal Layout (the fork's side-by-side mode) no longer
   collapses the graph to 2px**, which took the Properties filter and the
-  layout controls with it — in the DOM but invisible. The fork pins its
+  layout controls with it – in the DOM but invisible. The fork pins its
   results column to an explicit small height there; the column now stretches
   to the row. The graph, filter and controls were never removed from the
-  code — `src/` is untouched this session — they were rendered into a
+  code (`src/` is untouched this session). They were rendered into a
   collapsed container, in an orientation no earlier check ever ran in. (D24)
 - **SPARQL mode: the Response view neither gets squeezed by the query
   editor's height cap (an over-broad selector) nor overflows the page on
-  short windows** — its CodeMirror is a flex item that scrolls internally,
+  short windows** – its CodeMirror is a flex item that scrolls internally,
   like the graph. (D24)
 - **SPARQL mode: the footer no longer floats above the bottom of the window in
   the Table or Response views, or on a new tab** (measured: 436px, 233px and
   436px of dead space). The old JavaScript fit sized only the Nodica graph
   container, so any view without one left nothing holding the page open. (D23)
 - **SPARQL mode: the graph fills the results panel** instead of stopping short
-  and leaving blank space above the footer — YASGUI's `.yasrWrapperEl` does
+  and leaving blank space above the footer – YASGUI's `.yasrWrapperEl` does
   not grow, capping the panel at its content height. (D23)
 - **SPARQL mode: the graph no longer sits at a fixed 560px with dead space
   below the footer on tall viewports.** Its height is now fit to actual
   available space (viewport height minus the graph's rendered top position
   minus the footer), re-measured on resize and on every redraw, floored at
   420px so short windows scroll instead of squashing the canvas. YASGUI's own
-  editor/results layout is untouched — only Nodica's own container is resized.
+  editor/results layout is untouched – only Nodica's own container is resized.
   (D22)
 - **SPARQL mode: the footer is reachable without scrolling at any realistic
   window height.** YASGUI's stylesheet pinned the page at a minimum 904px
@@ -129,7 +140,7 @@ fills its nodes.
   release capped it in CSS instead; that broke drag-to-resize and is described
   under the editor fix below. D22, corrected by D25.)
 - **SPARQL mode: the graph fit was 16px short**, subtracting only the footer
-  and not `#yasgui`'s bottom padding — enough on its own to keep a scrollbar
+  and not `#yasgui`'s bottom padding – enough on its own to keep a scrollbar
   alive on every screen size. It now measures the whole span below the graph.
   (D22)
 - **SPARQL mode: the footer and the "Query Types"/"Patterns" buttons now line
@@ -159,13 +170,13 @@ headless Chromium, same machine and connection before and after:
 
 - `cfg:imageMaxWidth` (default `400`, user-settable): node images that come
   from a MediaWiki `Special:FilePath` URL are requested at this width instead
-  of as the original upload — those are routinely 10–30 MB, and one image in
+  of as the original upload – those are routinely 10–30 MB, and one image in
   the bundled demo data was a 30 MB TIFF. `0` restores the old behaviour.
   Exposed in the settings panel as "Image width". (D20)
 - `GraphView` emits `stabilizationProgress` and `stabilized`, so a host can say
   what is happening while vis-network lays out the graph behind a blank canvas.
   File mode shows it in the status line; the YASR plugin in an overlay. (D20)
-- `Nodica.LIMITS` — the size thresholds that change rendering behaviour, in one
+- `Nodica.LIMITS` – the size thresholds that change rendering behaviour, in one
   place instead of duplicated between the app and the plugin. (D20)
 - `Nodica.applyPerformanceGuards()`, `Nodica.applyPositions()`,
   `Nodica.normalizeImageUrl()`, `GraphView#getPositions()`. (D20)
@@ -181,7 +192,7 @@ headless Chromium, same machine and connection before and after:
   (its own `clusterThreshold`, above which it clusters first and gets much
   slower), and curved edges above 500 edges. Called without hints, nothing
   changes. (D20)
-- SPARQL mode only auto-runs the demo query on a genuine first visit — when no
+- SPARQL mode only auto-runs the demo query on a genuine first visit – when no
   response was restored *and* the tab still holds the demo query verbatim. A
   query you wrote is never re-executed against the endpoint behind your back.
   (D20)

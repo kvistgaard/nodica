@@ -145,6 +145,85 @@ function read(rel) {
   const edgeLangRoundTrip = await IG.parseConfig(IG.configToTurtle(IG.mergeSettings({ edgeLabelLanguage: "de" })));
   check("edgeLabelLanguage round-trips through configToTurtle", edgeLangRoundTrip.edgeLabelLanguage === "de", edgeLangRoundTrip.edgeLabelLanguage);
 
+  /* ---- label cascade (D30) ---------------------------------------------- */
+  console.log("label cascade (D30)");
+  check("LABEL_CASCADE exported, rdfs:label first",
+    Array.isArray(IG.LABEL_CASCADE) && IG.LABEL_CASCADE[0] === "http://www.w3.org/2000/01/rdf-schema#label",
+    IG.LABEL_CASCADE);
+
+  // Unconfigured data labelled with skos:prefLabel renders labels anyway.
+  const skosData = await IG.parseRdf(
+    '@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n' +
+    '<http://x.org/a> skos:prefLabel "Alpha" ; <http://x.org/rel> <http://x.org/b> .'
+  );
+  const skosModel = IG.buildModel(skosData.quads, IG.mergeSettings(), skosData.prefixes);
+  const skosA = skosModel.nodes.find((n) => n.id === "http://x.org/a");
+  check("skos:prefLabel labels a node with the default config",
+    skosA && skosA.label === "Alpha", skosA && skosA.label);
+  check("the consumed skos triple spawns no literal box",
+    !skosModel.nodes.some((n) => n.id.indexOf("lit:") === 0), skosModel.nodes.length);
+
+  // Mixed vocabularies resolve per subject: rdfs where present, foaf elsewhere.
+  const mixedData = await IG.parseRdf(
+    '@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n' +
+    '@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n' +
+    '<http://x.org/a> rdfs:label "A-rdfs" ; foaf:name "A-foaf" ; <http://x.org/rel> <http://x.org/b> .\n' +
+    '<http://x.org/b> foaf:name "B-foaf" .'
+  );
+  const mixedModel = IG.buildModel(mixedData.quads, IG.mergeSettings(), mixedData.prefixes);
+  const mixedA = mixedModel.nodes.find((n) => n.id === "http://x.org/a");
+  const mixedB = mixedModel.nodes.find((n) => n.id === "http://x.org/b");
+  check("higher-ranked rdfs:label beats foaf:name on the same subject",
+    mixedA && mixedA.label === "A-rdfs", mixedA && mixedA.label);
+  check("a subject the better property misses falls through the cascade",
+    mixedB && mixedB.label === "B-foaf", mixedB && mixedB.label);
+  check("the losing label triple is consumed too (no duplicate literal box)",
+    !mixedModel.nodes.some((n) => n.id.indexOf("lit:") === 0),
+    mixedModel.nodes.map((n) => n.id));
+
+  // Configured property outranks rdfs:label where it is available.
+  const cfgModel = IG.buildModel(
+    mixedData.quads,
+    IG.mergeSettings({ labelProperty: "http://xmlns.com/foaf/0.1/name" }),
+    mixedData.prefixes
+  );
+  const cfgA = cfgModel.nodes.find((n) => n.id === "http://x.org/a");
+  check("configured labelProperty wins over the cascade when available",
+    cfgA && cfgA.label === "A-foaf", cfgA && cfgA.label);
+
+  // Rank order beats input order: the cascade winner may arrive later.
+  const orderData = await IG.parseRdf(
+    '@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n' +
+    '@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n' +
+    '<http://x.org/a> skos:prefLabel "second-rank" .\n' +
+    '<http://x.org/a> rdfs:label "first-rank" ; <http://x.org/rel> <http://x.org/b> .'
+  );
+  const orderModel = IG.buildModel(orderData.quads, IG.mergeSettings(), orderData.prefixes);
+  const orderA = orderModel.nodes.find((n) => n.id === "http://x.org/a");
+  check("a better-ranked label later in the input replaces the earlier one",
+    orderA && orderA.label === "first-rank", orderA && orderA.label);
+
+  // schema.org http/https equivalence applies inside the cascade.
+  const schemaHttp = await IG.parseRdf(
+    '<http://x.org/a> <http://schema.org/name> "via-http" ; <http://x.org/rel> <http://x.org/b> .'
+  );
+  const schemaModel = IG.buildModel(schemaHttp.quads, IG.mergeSettings(), schemaHttp.prefixes);
+  const schemaA = schemaModel.nodes.find((n) => n.id === "http://x.org/a");
+  check("http://schema.org/name matches the https cascade entry",
+    schemaA && schemaA.label === "via-http", schemaA && schemaA.label);
+
+  // Predicate labels: rank decides before language (D17 applies within rank).
+  const predRankData = await IG.parseRdf(
+    '@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n' +
+    '@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n' +
+    '<http://x.org/rel> skos:prefLabel "skos-en"@en ; rdfs:label "rdfs-de"@de .\n' +
+    '<http://x.org/a> <http://x.org/rel> <http://x.org/b> .'
+  );
+  const predRankModel = IG.buildModel(predRankData.quads, IG.mergeSettings(), predRankData.prefixes);
+  const predRankEdge = predRankModel.edges.find((e) => e.predicate === "http://x.org/rel");
+  check("edge label: property rank beats language match",
+    predRankEdge && predRankEdge.label === "rdfs-de", predRankEdge && predRankEdge.label);
+
   /* ---- config defaults + overrides ------------------------------------- */
   console.log("mergeSettings + configToTurtle round-trip");
   const merged = IG.mergeSettings({ nodeSize: 99 }, { edgeColor: "#123456" });
