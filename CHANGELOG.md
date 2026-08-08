@@ -11,6 +11,11 @@ Entries cite the decision that explains them (`D20`, …). The decisions live in
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-08
+
+The first version published as a GitHub release. Earlier versions exist as
+tags only.
+
 ### Added
 
 - **Label fallback cascade.** When `cfg:labelProperty` has no value for a
@@ -23,6 +28,11 @@ Entries cite the decision that explains them (`D20`, …). The decisions live in
   `Nodica.LABEL_CASCADE`. One visible change: a subject carrying two label
   properties no longer sprouts a literal box for the losing one - both
   triples count as labels. (D30)
+- `test/embed-fixture-triply.html` – the bare-host embed check now runs against
+  upstream Triply YASGUI (`@triply/yasgui@4.2.28`) as well as the Matdata fork
+  (`@matdata/yasgui@5.20.3`), so `npm run test:browser` covers two YASGUI
+  lineages instead of one. The README's claim that the plugin works in any
+  YASGUI deployment is now asserted rather than assumed.
 
 ## [0.3.0] - 2026-08-07
 
@@ -228,3 +238,6 @@ headless Chromium, same machine and connection before and after:
 
 First working version: core library, standalone file-mode app, YASR plugin for
 SPARQL mode, shared theming. See `decisions-log.md` D1–D19.
+
+[Unreleased]: https://github.com/kvistgaard/nodica/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/kvistgaard/nodica/releases/tag/v0.4.0
