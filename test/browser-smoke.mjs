@@ -117,6 +117,9 @@ const PROBE = () => {
       return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2), h: Math.round(r.height) }
     })(),
     theme: document.documentElement.getAttribute('data-theme'),
+    // What the UA paints scrollbars, checkboxes and spinners from. It is a
+    // separate declaration from our colour tokens and does not follow them.
+    colorScheme: getComputedStyle(document.documentElement).colorScheme,
     // Layout
     deadSpaceBelowFooter: fr ? Math.round(window.innerHeight - (fr.bottom + fMargin)) : null,
     overflow: Math.round(document.documentElement.scrollHeight - window.innerHeight),
@@ -205,6 +208,22 @@ function assertControls(scenario, m) {
   else pass(label)
 }
 
+/**
+ * Issue #1 was light scrollbars in the dark theme. The browser picks the
+ * colour of scrollbars, checkboxes, number spinners and the colour-input
+ * swatch from `color-scheme` alone, never from the page's own background.
+ * Left at the default `normal`, every scrolling element in dark mode kept
+ * light chrome. This is asserted on the property rather than on pixels
+ * because headless Chromium uses overlay scrollbars (0px wide, painted only
+ * while scrolling), so a screenshot is identical either way.
+ */
+function assertColorScheme(scenario, m) {
+  const label = `${scenario}: colour scheme declared to the browser`
+  if (!m.theme) return fail(label, 'no data-theme on <html>')
+  if (m.colorScheme !== m.theme) fail(label, `data-theme=${m.theme} but color-scheme=${m.colorScheme} - UA chrome will be ${m.colorScheme === 'normal' ? 'light' : m.colorScheme}`)
+  else pass(label)
+}
+
 function assertColours(scenario, m) {
   const label = `${scenario}: graph buttons match the Run button colour`
   if (!m.runBg) return fail(label, 'Run button (.yasqe_queryButton) not found - cannot compare')
@@ -286,6 +305,7 @@ for (const theme of ['light', 'dark']) {
     assertPropertiesFilter(`${scenarioBase} Nodica view`, m)
     assertControls(`${scenarioBase} Nodica view`, m)
     assertColours(`${scenarioBase} Nodica view`, m)
+    assertColorScheme(`${scenarioBase} Nodica view`, m)
     assertEditorScrollbars(`${scenarioBase} Nodica view`, m)
     assertEditorResizable(`${scenarioBase} Nodica view`, m)
 

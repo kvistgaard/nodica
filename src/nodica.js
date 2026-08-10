@@ -1181,7 +1181,7 @@
   /* ------------------------------------------------------------------ */
 
   root.Nodica = {
-    VERSION: "0.4.0",
+    VERSION: "0.4.1",
     CFG_NS: CFG_NS,
     DEFAULTS: DEFAULTS,
     CONFIG_TERMS: CONFIG_TERMS,

@@ -11,6 +11,8 @@ Entries cite the decision that explains them (`D20`, …). The decisions live in
 
 ## [Unreleased]
 
+## [0.4.1] - unreleased
+
 ### Changed
 
 - **The uncle-relations demo is labelled.** It carried
@@ -25,6 +27,18 @@ Entries cite the decision that explains them (`D20`, …). The decisions live in
   that moved the default SPARQL query out of `test/` in 0.3.0 (D28). Anyone
   running a fork with a customised `settings.ttl` that points at the old path
   needs to update `cfg:dataSource`.
+
+### Fixed
+
+- **Dark theme now has dark scrollbars** (issue #1). Browsers paint scrollbars,
+  checkboxes, number spinners and the colour-input swatch from the CSS
+  `color-scheme` property, which no stylesheet declared, so those controls
+  stayed light while everything around them went dark. `assets/theme.css`
+  declares it alongside the tokens (D19), which is enough for both pages, the
+  YASGUI query editor and the plugin's panels, since the property inherits.
+  `npm run test:browser` gained a check per scenario (108 → 112). It reads the
+  computed property; a screenshot would prove nothing here, since headless
+  Chromium draws overlay scrollbars that occupy no space.
 
 ## [0.4.0] - 2026-08-08
 
@@ -254,5 +268,5 @@ headless Chromium, same machine and connection before and after:
 First working version: core library, standalone file-mode app, YASR plugin for
 SPARQL mode, shared theming. See `decisions-log.md` D1–D19.
 
-[Unreleased]: https://github.com/kvistgaard/nodica/compare/v0.4.0...HEAD
+[0.4.1]: https://github.com/kvistgaard/nodica/compare/v0.4.0...HEAD
 [0.4.0]: https://github.com/kvistgaard/nodica/releases/tag/v0.4.0

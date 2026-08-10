@@ -12,8 +12,16 @@
  * (every primary action button - Render, etc.) follow the same value via
  * var(), so there's exactly one blue across the whole app, in both modes
  * and both themes, not two adjacent-but-different shades.
+ *
+ * color-scheme is declared alongside the tokens because the browser paints
+ * scrollbars, checkboxes, number spinners and the colour-input swatch from
+ * that property alone. It never infers them from our background colours.
+ * Left at the default `normal`, dark mode showed light scrollbars on every
+ * scrolling element (issue #1). It is inherited, so declaring it on the root
+ * covers YASGUI's editor and the plugin's panels too.
  */
 :root {
+  color-scheme: light;
   --bg: #f5f5f5;
   --panel: #ffffff;
   --border: #e0e0e0;
@@ -36,6 +44,7 @@
   --count-color: #888888;
 }
 html[data-theme="dark"] {
+  color-scheme: dark;
   --bg: #0d1117;
   --panel: #161b22;
   --border: #30363d;
