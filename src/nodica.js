@@ -2,7 +2,7 @@
  * Nodica core library (v0.2)
  *
  * RDF graph visualisation with image-filled nodes.
- * See decisions-log.md for the full spec and decisions D1-D20.
+ * See decision-log.md for the full spec and decisions D1-D31.
  *
  * Classic script (no build step): attaches `Nodica` to window/globalThis.
  * Dependencies (globals): N3 (parsing), vis (vis-network, only needed by GraphView).

@@ -2,5 +2,5 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
-decisions-log.md
+decision-log.md
 CLAUDE.md

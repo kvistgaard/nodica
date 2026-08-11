@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Entries cite the decision that explains them (`D20`, …). The decisions live in
-[`decisions-log.md`](decisions-log.md), which stays the authoritative record of
+[`decision-log.md`](decision-log.md), which stays the authoritative record of
 *why* something was done; this file is the short answer to *what changed when*.
 
 ## [Unreleased]
@@ -266,7 +266,7 @@ headless Chromium, same machine and connection before and after:
 ## [0.1.0] - 2026-07-11
 
 First working version: core library, standalone file-mode app, YASR plugin for
-SPARQL mode, shared theming. See `decisions-log.md` D1–D19.
+SPARQL mode, shared theming. See `decision-log.md` D1–D19.
 
 [0.4.1]: https://github.com/kvistgaard/nodica/compare/v0.4.0...HEAD
 [0.4.0]: https://github.com/kvistgaard/nodica/releases/tag/v0.4.0
